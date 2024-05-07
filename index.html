@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Genome Analysis Website</title>
+</head>
+
+<link rel="stylesheet" type="text/css" href="base.css">
+
+<body>
+    <nav class="navbar">
+        <a href="">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/AIIMS_New_Delhi.png" alt="Home" width="64">
+        </a>
+        <div class="navsec1">
+            <h1>Genome Analysis</h1>
+        </div>
+    </nav>
+    <div class='container'>
+        <div class="topnav" id="myTopnav">
+            <a href="#home" class="active">Home</a>
+            <a href="#news">News</a>
+            <a href="#contact">Contact</a>
+            <div class="dropdown">
+                <button class="dropbtn">Dropdown
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#">Link 1</a>
+                    <a href="#">Link 2</a>
+                    <a href="#">Link 3</a>
+                </div>
+            </div>
+            <a href="#about">About</a>
+            <a href="javascript:void(0);" class="icon" onclick="myFunction()">&#9776;</a>
+        </div>
+
+
+        <div class="form">
+            <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                <label for="name">Name:</label><br>
+                <input type="text" name="name" id="name" placeholder="Name"> <br>
+                <label for="email">Email:</label><br>
+                <input type="email" name="email" id="email" placeholder="Email"> <br>
+                <label for="phno">Phone Number:</label> <br>
+                <input type="tel" name="phno" id="phno" placeholder="Phone Number"> <br>
+                <label for="institution">Institution:</label> <br>
+                <input type="text" name="institution" id="institution" placeholder="Institution"> <br>
+
+                <label for="genomeFile">Select FASTQ.GZ file:</label><br>
+                <input type="file" id="genomeFile" name="genomeFile" accept=".fastq.gz">
+                <br>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+
+        const uploadForm = document.getElementById('uploadForm');
+
+        uploadForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(uploadForm);
+            const response = await fetch('/upload-genome', {
+                method: 'POST',
+                body: formData
+            });
+
+            const message = await response.text();
+            alert(message); // Display success or error message
+
+            // Add code to retrieve and display the FASTQC report (see below)
+        });
+
+        // Function to fetch and display the FASTQC report (optional)
+        async function fetchReport(genomeId) {
+            const response = await fetch(`/report/${genomeId}`);
+            const reportData = await response.text();
+            // Display the report data in a dedicated section (e.g., using a pre tag)
+        }
+    </script>
+</body>
+
+</html>

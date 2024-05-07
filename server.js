@@ -7,10 +7,16 @@ const app = express();
 const port = process.env.PORT || 3000; // Set port for deployment
 
 // Configure Multer for file uploads
-const upload = multer({ dest: 'uploads/' }); // Change 'uploads/' if needed
+const upload = multer({ dest: 'uploads/', fileFilter: (req, file, cb) => {
+  if (!file.originalname.match(/\.(fastq\.gz)$/)) {
+    return cb(new Error('Only FASTQ.gz files are allowed!'), false);
+  }
+  cb(null, true);
+} });
+ // Change 'uploads/' if needed
 
 // Connect to MongoDB
-mongoose.connect('mongodb://your_mongo_connection_string', {
+mongoose.connect(`mongodb+srv://aryanb349:G00GLE34.Aryan@cluster0.qpjxkfz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -20,9 +26,11 @@ mongoose.connect('mongodb://your_mongo_connection_string', {
 // Define Mongoose schema for genome data
 const genomeSchema = new mongoose.Schema({
   name: String,
-  fastaData: String, // Store the entire FASTA data as a string for simplicity
+  fastqData: String, // Store the entire FASTA data as a string for simplicity
   fastqcReport: String // Store the FASTQC report as a string
 });
+
+const uploadFile = require('./')
 
 const Genome = mongoose.model('Genome', genomeSchema);
 
@@ -30,14 +38,20 @@ const Genome = mongoose.model('Genome', genomeSchema);
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Route for uploading genome file
-app.post('/upload-genome', upload.single('genomeFile'), async (req, res) => {
+aapp.post('/upload-genome', upload.single('genomeFile'), async (req, res) => {
   try {
     const { filename, originalname } = req.file;
-    const fastaData = await readFileSync(`uploads/${filename}`, 'utf-8'); // Read uploaded FASTA data
+
+    // Read the uploaded file as a buffer
+    const fileBuffer = await fs.promises.readFile(`uploads/${filename}`);
+
+    // Decompress the buffer using 'zlib'
+    const zlib = require('zlib');
+    const decompressedData = zlib.gunzipSync(fileBuffer).toString('utf-8');
 
     const genome = new Genome({
       name: originalname,
-      fastaData,
+      fastaData: decompressedData, // Not suitable for FASTQ
       fastqcReport: '' // Initialize empty report field
     });
 
