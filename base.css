@@ -31,7 +31,8 @@ form {
     padding: 1rem;
 }
 label{
-    
+    margin-top: 5px;
+    margin-left: 5px;
 }
 input { 
     width: 100%;
