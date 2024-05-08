@@ -8,30 +8,23 @@
     background-image: linear-gradient(#B6E5FA, #67CDFC);
     box-shadow: 0 2px 4px 0 rgba(0,0,0,.05);
 }
-.navsec1 {
-  display: flex;
-  align-items: center;
+
+.navsec1{
+    display: flex;
+    align-items: center;
+    color: white;
 }
 
-.navsec2 {
+.navsec2{
   display: flex;
-}
-
-.input-group{
-  display: inline-flex;
-  justify-content: space-evenly;
-  
 }
 
 form {
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     border: 3px solid #67CDFC;
-    width: 75%;
     justify-content: center;
-    display: flex;
-    flex-wrap: wrap;
-    border-radius:5px;
     align-items: center;
+    width: 50%;
 }
 
 .form {
@@ -41,53 +34,19 @@ form {
     justify-content: center;
     padding: 1rem;
 }
-.wrap-input{
-  width:100%;
-  margin-bottom: 25px;
-  border-bottom: 2px solid #d9d9d9;
-  position: relative;
-  box-sizing: border-box;
+label{
+    margin-top: 5px;
+    margin-left: 5px;
 }
-
-.input-group {
-  font-family: Poppins-Regular;
-  font-size: 15px;
-  color: gray;
-  line-height: 1.2;
-  text-align: right;
-  position: absolute;
-  top: 14px;
-  left: -105px;
-  width: 80px;
-
+input { 
+    width: 100%;
+    padding: 12px 24px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
-
-label {
-  flex: 1;
-  padding: 0.5em 0.5em 0.5em 0;
-  text-align: right;
-}
-
-input {
-  padding: 0.7em;
-  border: 1px solid #67CDFC;
-  width:100%;
-}
-
-button {
-  padding: 12px 24px;
-  margin: 8px;
-  border: none;
-  border-radius: 4px;
-  background-color: #67CDFC;
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #4fa9d8;
-}
-
 /********************************************************************************************/
 .topnav {
     background-color: #333;
