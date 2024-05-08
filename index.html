@@ -13,7 +13,10 @@
             <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/AIIMS_New_Delhi.png" alt="Home" width="64">
         </a>
         <div class="navsec1">
-            <h1>Genome Analysis</h1>
+            <h1 class="header"> Genome Analysis </h1>
+        </div>
+        <div class="navsec2">
+            <img src="https://cmie-aiims.in/wp-content/uploads/2022/04/ccrf-logo.jpg" width='64' />
         </div>
     </nav>
     <div class='container'>
@@ -35,60 +38,87 @@
             <a href="javascript:void(0);" class="icon" onclick="myFunction()">&#9776;</a>
         </div>
 
-
         <div class="form">
             <form id="uploadForm" method="POST" enctype="multipart/form-data">
-                <label for="name">Name:</label><br>
-                <input type="text" name="name" id="name" placeholder="Name"> <br>
-                <label for="email">Email:</label><br>
-                <input type="email" name="email" id="email" placeholder="Email"> <br>
-                <label for="phno">Phone Number:</label> <br>
-                <input type="tel" name="phno" id="phno" placeholder="Phone Number"> <br>
-                <label for="institution">Institution:</label> <br>
-                <input type="text" name="institution" id="institution" placeholder="Institution"> <br>
-
-                <label for="genomeFile">Select FASTQ.GZ file:</label><br>
-                <input type="file" id="genomeFile" name="genomeFile" accept=".fastq.gz">
+                <div class="wrap-input">
+                    <span class="input-group">
+                        <label for="name">Name:</label>
+                        <input type="text" name="name" id="name" placeholder="Name">
+                    </span>
+                </div>
                 <br>
-                <button type="submit">Upload</button>
+                <div class="wrap-input">
+                    <span class="input-group">
+                        <label for="email">Email:</label>
+                        <input type="email" name="email" id="email" placeholder="Email">
+                    </span>
+                </div>
+                <br>
+                <div class="wrap-input">
+                    <span class="input-group">
+                        <label for="phno">Phone Number:</label>
+                        <input type="tel" name="phno" id="phno" placeholder="Phone Number">
+                    </span>
+                </div>
+                <div class="wrap-input">
+                    <br>
+                    <div class="wrap-input">
+                        <span class="input-group">
+                            <label for="institution">Institution:</label>
+                            <input type="text" name="institution" id="institution" placeholder="Institution">
+                        </span>
+                    </div>
+                    <br>
+                    <div class="wrap-input">
+                        <span class="input-group">
+                            <label for="genomeFile">Select FASTQ.GZ file:</label>
+                            <input type="file" id="genomeFile" name="genomeFile" accept=".fastq.gz">
+                        </span>
+                    </div>
+                    <br>
+                    <div class="wrap-input">
+                        <span class="input-group">
+                            <button type="submit">Upload</button>
+                        </span>
+                    </div>
             </form>
         </div>
-    </div>
-    <script>
-        function myFunction() {
-            var x = document.getElementById("myTopnav");
-            if (x.className === "topnav") {
-                x.className += " responsive";
-            } else {
-                x.className = "topnav";
+
+        <script>
+            function myFunction() {
+                var x = document.getElementById("myTopnav");
+                if (x.className === "topnav") {
+                    x.className += " responsive";
+                } else {
+                    x.className = "topnav";
+                }
             }
-        }
 
 
-        const uploadForm = document.getElementById('uploadForm');
+            const uploadForm = document.getElementById('uploadForm');
 
-        uploadForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
+            uploadForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
 
-            const formData = new FormData(uploadForm);
-            const response = await fetch('/upload-genome', {
-                method: 'POST',
-                body: formData
+                const formData = new FormData(uploadForm);
+                const response = await fetch('/upload-genome', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const message = await response.text();
+                alert(message); // Display success or error message
+
+                // Add code to retrieve and display the FASTQC report (see below)
             });
 
-            const message = await response.text();
-            alert(message); // Display success or error message
-
-            // Add code to retrieve and display the FASTQC report (see below)
-        });
-
-        // Function to fetch and display the FASTQC report (optional)
-        async function fetchReport(genomeId) {
-            const response = await fetch(`/report/${genomeId}`);
-            const reportData = await response.text();
-            // Display the report data in a dedicated section (e.g., using a pre tag)
-        }
-    </script>
+            // Function to fetch and display the FASTQC report (optional)
+            async function fetchReport(genomeId) {
+                const response = await fetch(`/report/${genomeId}`);
+                const reportData = await response.text();
+                // Display the report data in a dedicated section (e.g., using a pre tag)
+            }
+        </script>
 </body>
 
 </html>
