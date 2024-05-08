@@ -96,17 +96,33 @@ const fs = require('fs');
 const app = express();
 const port = 3000;
 
-app.use(express.static('public'))
-
 // Multer configuration for file upload
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/')
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+});
+const upload = multer({ storage: storage });
 
-app.post('/upload', upload.single('file'), (req, res) => {
-    // Path to uploaded file
-    const filePath = req.file.path;
+// CORS middleware
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
+// Serve static files (like HTML)
+app.use(express.static('public'));
+
+app.post('/upload', upload.array('genomeFiles', 2), (req, res) => {
+    // Paths to uploaded files
+    const filePaths = req.files.map(file => file.path);
     
     // Run the Bash script
-    exec(`bash fastqc.sh ${filePath}`, (error, stdout, stderr) => {
+    exec(`bash fastqc.sh "${filePaths[0]}" "${filePaths[1]}"`, (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
             res.status(500).send('Error occurred during processing');

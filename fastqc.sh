@@ -1,25 +1,25 @@
-for i in *.fastq.gz
+#!/bin/bash
+
+# Loop through all fastq.gz files passed as arguments
+for fastq_file in "$@"
 do
-{
-sample="${i%.fastq.gz}"
-echo $sample
-
-fastqc ${sample}
-
-}
+    sample="${fastq_file%.fastq.gz}"
+    echo "Processing $sample"
+    # Run FastQC on each fastq.gz file
+    fastqc "$fastq_file"
 done
 
+# Run MultiQC to generate a report for all fastq.gz files
 multiqc .
 
-#add html generation steps here
-
-echo "<!DOCTYPE html>
+# Generate the HTML report
+echo '<!DOCTYPE html>
 <html>
 <head>
     <title>Fastq Report</title>
 </head>
 <body>
-    <h1>Report for ${multiqc_report.html}</h1>
+    <h1>Report for MultiQC</h1>
     <p>Processing completed successfully.</p>
 </body>
-</html>" > report.html
+</html>' > report.html

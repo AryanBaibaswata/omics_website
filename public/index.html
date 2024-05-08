@@ -41,7 +41,7 @@
 
         <div class="form">
             <form id="uploadForm" method="POST" enctype="multipart/form-data">
-                <label for="name">Name:</label><br>
+                <!-- <label for="name">Name:</label><br>
                 <input type="text" name="name" id="name" placeholder="Name"> <br>
                 <label for="email">Email:</label><br>
                 <input type="email" name="email" id="email" placeholder="Email"> <br>
@@ -49,11 +49,11 @@
                 <input type="tel" name="phno" id="phno" placeholder="Phone Number"> <br>
                 <label for="institution">Institution:</label> <br>
                 <input type="text" name="institution" id="institution" placeholder="Institution"> <br>
-
-                <label for="genomeFile">Select FASTQ.GZ file:</label><br>
-                <input type="file" id="genomeFile" name="genomeFile" accept=".fastq.gz">
+                -->
+                <label for="genomeFiles">Select FASTQ.GZ file:</label><br>
+                <input type="file" id="genomeFiles" name="genomeFiles" accept=".fastq.gz" multiple>
                 <br>
-                <button type="submit">Upload</button>
+                <button type="submit" id="submit">Upload</button>
             </form>
         </div>
     </div>
