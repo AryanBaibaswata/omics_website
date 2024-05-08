@@ -70,27 +70,20 @@
 
         const uploadForm = document.getElementById('uploadForm');
 
-        uploadForm.addEventListener('submit', async (event) => {
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
             event.preventDefault();
-
-            const formData = new FormData(uploadForm);
-            const response = await fetch('/upload-genome', {
-                method: 'POST',
-                body: formData
-            });
-
-            const message = await response.text();
-            alert(message); // Display success or error message
-
-            // Add code to retrieve and display the FASTQC report (see below)
+            var formData = new FormData(this);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.onload = function () {
+                if (xhr.status == 200) {
+                    document.getElementById('result').innerHTML = xhr.responseText;
+                } else {
+                    document.getElementById('result').innerHTML = 'Error occurred';
+                }
+            };
+            xhr.send(formData);
         });
-
-        // Function to fetch and display the FASTQC report (optional)
-        async function fetchReport(genomeId) {
-            const response = await fetch(`/report/${genomeId}`);
-            const reportData = await response.text();
-            // Display the report data in a dedicated section (e.g., using a pre tag)
-        }
     </script>
 </body>
 
