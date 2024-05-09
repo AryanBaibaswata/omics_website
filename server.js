@@ -87,11 +87,11 @@
 
 // app.listen(port, () => console.log(`Server listening on port ${port}`));
 
-
 const express = require('express');
 const multer = require('multer');
 const { exec } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const port = 3000;
@@ -107,14 +107,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// CORS middleware
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-});
-
-// Serve static files (like HTML)
+// Serve static files
 app.use(express.static('public'));
 
 app.post('/upload', upload.array('genomeFiles', 2), (req, res) => {
@@ -129,7 +122,8 @@ app.post('/upload', upload.array('genomeFiles', 2), (req, res) => {
             return;
         }
         // Read the generated report
-        fs.readFile('report.html', 'utf8', (err, data) => {
+        const reportPath = path.join(__dirname, 'multiqc_reports', 'multiqc_report.html');
+        fs.readFile(reportPath, 'utf8', (err, data) => {
             if (err) {
                 console.error(`Error reading report: ${err}`);
                 res.status(500).send('Error occurred during processing');
@@ -141,6 +135,15 @@ app.post('/upload', upload.array('genomeFiles', 2), (req, res) => {
     });
 });
 
+// Serve the MultiQC report
+app.get('/multiqc_report', (req, res) => {
+    // Send the MultiQC report as response
+    const reportPath = path.join(__dirname, 'multiqc_reports', 'multiqc_report.html');
+    res.sendFile(reportPath);
+});
+
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
+
+
