@@ -1,3 +1,3 @@
 Module	Section	Sample Name	Source
-FastQC	all_sections	SRR15991306_1	/home/aryan/projects/omics_website/uploads/SRR15991306_1_fastqc.zip
-FastQC	all_sections	SRR15991306_2	/home/aryan/projects/omics_website/uploads/SRR15991306_2_fastqc.zip
+FastQC	all_sections	SRR15991306_2	/home/bioinformatics-pc55/projects/omics_website/uploads/SRR15991306_2_fastqc.zip
+FastQC	all_sections	SRR15991306_1	/home/bioinformatics-pc55/projects/omics_website/uploads/SRR15991306_1_fastqc.zip

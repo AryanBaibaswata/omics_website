@@ -51,7 +51,7 @@
                 <input type="text" name="institution" id="institution" placeholder="Institution"> <br>
                 -->
                 <label for="genomeFiles">Select FASTQ.GZ file:</label><br>
-                <input type="file" id="genomeFiles" name="genomeFiles" accept=".fastq.gz" multiple>
+                <input type="file" id="genomeFiles" name="genomeFiles" accept=".fastq.gz" multiple required>
                 <br>
                 <button type="submit" id="submit">Upload</button>
             </form>
@@ -69,14 +69,21 @@
                 x.className = "topnav";
             }
         }
+        function generateAccessToken() {
+            // Use a secure library to generate a random string (e.g., crypto.randomBytes)
+            const tokenLength = 32; // Adjust length as needed
+            const token = crypto.randomBytes(tokenLength).toString('hex');
+            return token;
+        }
 
 
         const uploadForm = document.getElementById('uploadForm');
 
-        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
             event.preventDefault();
             var formData = new FormData(this);
             var xhr = new XMLHttpRequest();
+            var token = generateAccessToken();
             xhr.open('POST', '/upload', true);
             xhr.onload = function () {
                 if (xhr.status == 200) {
@@ -85,7 +92,7 @@
                     document.getElementById('result').innerHTML = 'Error occurred';
                 }
             };
-            xhr.send(formData);
+            xhr.send({formData: formData, token: token});
         });
 
     </script>
