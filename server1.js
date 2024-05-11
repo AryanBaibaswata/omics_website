@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
-
+console.log("uploads")
 // Serve static files
 app.use(express.static('public'));
 
@@ -35,7 +35,7 @@ app.post('/upload', upload.array('genomeFiles', 2), (req, res) => {
         const destPath = path.join(uploadDir, path.basename(filePaths[i]));
         fs.renameSync(filePaths[i], destPath);
     }
-
+    console.log("uploadDir")
     // Run the Bash script
     exec(`bash fastqc.sh "${uploadDir}"`, (error, stdout, stderr) => {
         if (error) {
@@ -43,6 +43,7 @@ app.post('/upload', upload.array('genomeFiles', 2), (req, res) => {
             res.status(500).send('Error occurred during processing');
             return;
         }
+    console.log("exec")
         // Read the generated report
         const reportPath = path.join(__dirname, 'multiqc_reports', token, 'multiqc_report.html');
         fs.readFile(reportPath, 'utf8', (err, data) => {

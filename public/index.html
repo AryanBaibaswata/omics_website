@@ -39,17 +39,19 @@
         </div>
 
         <div class="form">
+        <form id="reportForm" method="GET">
             <label for="token">Enter Token:</label><br>
             <input type="text" id="token" name="token" placeholder="Enter your token">
             <button onclick="getReport()">Get Report</button>
             <br><br>
             <div id="report"></div>
             <br><br>
+        </form>
+            <form id="uploadForm" method="POST" enctype="multipart/form-data">
             <label for="generatedToken">Generated Token:</label><br>
             <input type="text" id="generatedToken" readonly>
             <button onclick="copyToken()">Copy Token</button>
             <br><br>
-            <form id="uploadForm" method="POST" enctype="multipart/form-data">
                 <label for="genomeFiles">Select FASTQ.GZ file:</label><br>
                 <input type="file" id="genomeFiles" name="genomeFiles" accept=".fastq.gz" multiple required>
                 <br>
@@ -92,6 +94,7 @@
             document.execCommand("copy");
             alert("Token copied to clipboard!");
         }
+        
 
         // Generate and display the token on page load
         window.onload = function () {
