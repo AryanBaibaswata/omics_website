@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const port = 3000;
+const mongoose = require('mongoose');
 
 // Define storage for uploaded files
 const storage = multer.diskStorage({
