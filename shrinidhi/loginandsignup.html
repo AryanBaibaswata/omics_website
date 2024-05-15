@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login and SignUp Form</title>
+    
+</head>
+
+<link rel="stylesheet" type="text/css" href="loginandsignup.css">
+
+<nav class="navbar">
+  <a href="">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/AIIMS_New_Delhi.png" alt="Home" width="64">
+  </a>
+  <div class="navsec1">
+      <h1>AIIMS OMICS TOOLBOX</h1>
+  </div>
+  <div class="navsec2">
+      <img src="https://cmie-aiims.in/wp-content/uploads/2022/04/ccrf-logo.jpg" alt="India" width="64">
+  </div>
+</nav>
+
+<body>
+ <div class="form_container">
+    <div id="feedback-form">
+        <h2 class="header" id="signup_header">Sign Up</h2>
+        <div>
+          <form action="/submit-form" method="POST">
+            
+            <div class="hiddenelements">
+              <input type="text" name="userid/email" id="txt1" placeholder="UserID/Email Address">
+              <input type="text" name="Password" id="txt2" placeholder="Password">
+              <label for="signup">Create an account</label><a href="#" id="sign_up_link">Sign Up</a>
+            </div>
+            <div class="showelements">
+            <input type="text" name="email" placeholder="Email"></input>
+            <input type="text" name="name" placeholder="Name"></input>
+            <input type="text" name="mobileno" placeholder="Mobile No"></input>
+            <input type="password" name="pwd" placeholder="Enter Password"></input>
+            <input type="password" name="reenterpwd" placeholder="Re-enter Password"></input>
+            <label for="login">Already have an account?</label><a href="#" id="flip-link">Login</a>
+            </div> 
+            
+            
+            <button type="submit" id="submit_button">Sign Up</button>
+          </form>
+        </div>
+      </div>
+  </div>    
+</body>
+<script>
+document.querySelector('#flip-link').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    var changeheader = document.getElementById('signup_header');
+
+    //check current content and switch it
+    if (changeheader.textContent === 'Sign Up'){
+      changeheader.textContent = 'Login';
+    } else {
+      changeheader.textContent = 'Sign Up';
+    }
+
+    //get the content of button content from submit button
+    var changebutton = document.getElementById('submit_button')
+
+    //check the current text content of submit button and change it
+    if (changebutton.textContent === 'Sign Up'){
+      changebutton.textContent = 'Login';
+    } else {
+      changebutton.textContent = 'Sign Up';
+    }
+  });
+    //get the hidden element and show it if link is clicked
+    document.querySelector('#flip-link').addEventListener('click', function(event) {
+    event.preventDefault(); 
+    
+    var hide = document.querySelectorAll('.hiddenelements')
+    
+     hide.forEach(function(element){
+        element.style.display = 'block';
+     }); 
+    });
+
+    //get the shown element and hide it if link is clicked
+    document.querySelector('#flip-link').addEventListener('click', function(event) {
+    event.preventDefault(); 
+    
+    var show = document.querySelectorAll('.showelements')
+    
+     show.forEach(function(element){
+        element.style.display = 'none';
+     }); 
+    });
+    
+    //Sign up switchroo part-1
+    document.querySelector('#sign_up_link').addEventListener('click', function(event) {
+    event.preventDefault(); 
+    
+    var show = document.querySelectorAll('.hiddenelements')
+    
+     show.forEach(function(element){
+        element.style.display = 'none';
+     }); 
+    });
+    
+    //Sign up switchroo part-2
+    document.querySelector('#sign_up_link').addEventListener('click', function(event) {
+    event.preventDefault(); 
+    
+    var show = document.querySelectorAll('.showelements')
+    
+     show.forEach(function(element){
+        element.style.display = 'block';
+     }); 
+    });
+
+    document.querySelector('#sign_up_link').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    var changeheader = document.getElementById('signup_header');
+
+    //check current content and switch it
+    if (changeheader.textContent === 'Sign Up'){
+      changeheader.textContent = 'Login';
+    } else {
+      changeheader.textContent = 'Sign Up';
+    }
+
+    //get the content of button content from submit button
+    var changebutton = document.getElementById('submit_button')
+
+    //check the current text content of submit button and change it
+    if (changebutton.textContent === 'Sign Up'){
+      changebutton.textContent = 'Login';
+    } else {
+      changebutton.textContent = 'Sign Up';
+    }
+  });
+
+
+    
+    //get the shown elements and hide them when link is clicked
+    //var showtxt1 = document.querySelectorAll('.showelements')
+    //var loginlink = getElementById("flip-link")
+
+    //loginlink.addEventListener("click", function(){
+      //if(loginlink.clicked == true) {
+        //showtxt1.forEach(function(element) {
+          //element.classList.toggle('hiddenelements');
+        //});
+      //}
+    //});
+
+</script>
+</html>
