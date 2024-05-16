@@ -7,7 +7,7 @@
     
 </head>
 
-<link rel="stylesheet" type="text/css" href="loginandsignup.css">
+<link rel="stylesheet" type="text/css" href="login.css">
 
 <nav class="navbar">
   <a href="">
@@ -29,8 +29,8 @@
           <form action="/submit-form" method="POST">
             
             <div class="hiddenelements">
-              <input type="text" name="userid/email" id="txt1" placeholder="UserID/Email Address">
-              <input type="text" name="Password" id="txt2" placeholder="Password">
+              <input type="text" name="userid/email" id="signup_email" placeholder="UserID/Email Address">
+              <input type="text" name="Password" id="signup_password" placeholder="Password">
               <label for="signup">Create an account</label><a href="#" id="sign_up_link">Sign Up</a>
             </div>
             <div class="showelements">
@@ -140,6 +140,12 @@ document.querySelector('#flip-link').addEventListener('click', function(event) {
       changebutton.textContent = 'Sign Up';
     }
   });
+
+  function signup(){
+    var formData = new FormData();
+
+
+  }
 
 
     

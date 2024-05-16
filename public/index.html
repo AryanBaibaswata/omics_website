@@ -54,21 +54,21 @@
                 <br>
                 <button type="button" onclick="uploadFiles()">Upload</button>
             </form>
-        </div>
+        </div>.
 
         <div id="report"></div>
 
     </div>
 
     <script>
-        // function myFunction() {
-        //     var x = document.getElementById("myTopnav");
-        //     if (x.className === "topnav") {
-        //         x.className += " responsive";
-        //     } else {
-        //         x.className = "topnav";
-        //     }
-        // }
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
 
         // // Function to generate a random token
         // function generateToken() {
@@ -151,7 +151,7 @@
                     document.getElementById('report').innerHTML = 'Error occurred during upload';
                 }
             };
-            xhr.send(formData);
+            xhr.send(formData); 
         }
     </script>
 </body>
