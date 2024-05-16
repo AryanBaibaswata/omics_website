@@ -26,6 +26,7 @@
     <div id="feedback-form">
        
         <div> 
+
           <div class="showelements">
             <form action="/submit-form" id="form1" method="POST">
               <h2 class="header" id="signup_header">Login</h2>
@@ -35,7 +36,8 @@
               <button type="submit" id="submit_button1">Login</button>
             </form>
           </div>
-        <div class="hiddenelements">
+
+        <div class="showelements">
           <form action="/submit-form" id="form2" method="POST">
             <h2 class="header" id="signup_header">Sign Up</h2>
             <input type="text" name="email" placeholder="Email"></input>
@@ -58,112 +60,11 @@ document.querySelector('#sign_up_link').addEventListener('click', function(event
     event.preventDefault(); // Prevent default link behavior
 
     //get the content of header label of form
-    const changeheader = document.getElementById('signup_header');
-
-    //check current content and switch it
-    if (changeheader.textContent === 'Sign Up'){
-      changeheader.textContent = 'Login';
-    } else {
-      changeheader.textContent = 'Sign Up';
-    }
-
-    //get the content of button content from submit button
-    var changebutton = document.getElementById('submit_button')
-
-    //check the current text content of submit button and change it
-    if (changebutton.textContent === 'Sign Up'){
-      changebutton.textContent = 'Login';
-    } else {
-      changebutton.textContent = 'Sign Up';
-    }
-  });
-    //get the hidden element and show it if link is clicked
-    document.querySelector('#flip-link').addEventListener('click', function(event) {
-    event.preventDefault(); 
-    
-    var hide = document.querySelectorAll('.hiddenelements')
-    
-     hide.forEach(function(element){
-        element.style.display = 'block';
-     }); 
-    });
-
-    //get the shown element and hide it if link is clicked
-    document.querySelector('#flip-link').addEventListener('click', function(event) {
-    event.preventDefault(); 
-    
-    var show = document.querySelectorAll('.showelements')
-    
-     show.forEach(function(element){
-        element.style.display = 'none';
-     }); 
-    });
-    
-    //Sign up switchroo part-1
-    document.querySelector('#sign_up_link').addEventListener('click', function(event) {
-    event.preventDefault(); 
-    
-    var show = document.querySelectorAll('.hiddenelements')
-    
-     show.forEach(function(element){
-        element.style.display = 'none';
-     }); 
-    });
-    
-    //Sign up switchroo part-2
-    document.querySelector('#sign_up_link').addEventListener('click', function(event) {
-    event.preventDefault(); 
-    
-    var show = document.querySelectorAll('.showelements')
+    const show = document.querySelectorAll('.hiddenelements')
     
      show.forEach(function(element){
         element.style.display = 'block';
      }); 
     });
 
-    document.querySelector('#sign_up_link').addEventListener('click', function(event) {
-    event.preventDefault(); // Prevent default link behavior
-
-    //get the content of header label of form
-    var changeheader = document.getElementById('signup_header');
-
-    //check current content and switch it
-    if (changeheader.textContent === 'Sign Up'){
-      changeheader.textContent = 'Login';
-    } else {
-      changeheader.textContent = 'Sign Up';
-    }
-
-    //get the content of button content from submit button
-    var changebutton = document.getElementById('submit_button')
-
-    //check the current text content of submit button and change it
-    if (changebutton.textContent === 'Sign Up'){
-      changebutton.textContent = 'Login';
-    } else {
-      changebutton.textContent = 'Sign Up';
-    }
-  });
-
-  function signup(){
-    var formData = new FormData();
-
-
-  }
-
-
-    
-    //get the shown elements and hide them when link is clicked
-    //var showtxt1 = document.querySelectorAll('.showelements')
-    //var loginlink = getElementById("flip-link")
-
-    //loginlink.addEventListener("click", function(){
-      //if(loginlink.clicked == true) {
-        //showtxt1.forEach(function(element) {
-          //element.classList.toggle('hiddenelements');
-        //});
-      //}
-    //});
-
-</script>
-</html>
+ 
