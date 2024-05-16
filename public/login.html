@@ -37,7 +37,7 @@
             </form>
           </div>
 
-        <div class="showelements">
+        <div class="hiddenelements">
           <form action="/submit-form" id="form2" method="POST">
             <h2 class="header" id="signup_header">Sign Up</h2>
             <input type="text" name="email" placeholder="Email"></input>
@@ -67,4 +67,50 @@ document.querySelector('#sign_up_link').addEventListener('click', function(event
      }); 
     });
 
- 
+
+    document.querySelector('#sign_up_link').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.showelements')
+    
+     show.forEach(function(element){
+        element.style.display = 'none';
+     }); 
+    });
+
+    document.querySelector('#login_link').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.showelements')
+    
+     show.forEach(function(element){
+        element.style.display = 'none';
+     }); 
+    });
+
+    document.querySelector('#login_link').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.showelements')
+    
+     show.forEach(function(element){
+        element.style.display = 'block';
+     }); 
+    });
+
+    document.querySelector('#login_link').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.hiddenelements')
+    
+     show.forEach(function(element){
+        element.style.display = 'none';
+     }); 
+    });
+
+</script>
+</html>
