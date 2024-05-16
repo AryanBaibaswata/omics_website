@@ -9,7 +9,7 @@ const port = 3000;
 const date = new Date().toISOString().replace(/:/g, '-');
 const uploadPath = path.join(__dirname, `uploads/${date}/files`);
 const mongoose = require('mongoose');
-
+const json = require('json');
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
@@ -25,6 +25,7 @@ mongoose.connect('mongodb+srv://shrinidhivasant:shri123@cluster0.qpjxkfz.mongodb
 
 // Define a schema for the form data
 const formDataSchema = new mongoose.Schema({
+    id: String,
     email: String,
     name: String,
     mobileNo: String,
@@ -40,13 +41,15 @@ app.use(express.urlencoded({ extended: true }));
 app.post('/submit-form', async (req, res) => {
     try {
         // Create a new document with the form data
+        
         const formData = new FormData({
+            id: (req.body.name.slice(0,4) + req.body.email.slice(0,4) + req.body.mobileno.slice(0,4) + req.body.pwd.slice(0,4)),
             email: req.body.email,
             name: req.body.name,
             mobileNo: req.body.mobileno,
             password: req.body.pwd
         });
-
+        console.log(JSON.stringify(formData));
         // Save the document to the database
         await formData.save();
 
