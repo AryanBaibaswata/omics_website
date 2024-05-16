@@ -9,7 +9,19 @@ const port = 3000;
 const date = new Date().toISOString().replace(/:/g, '-');
 const uploadPath = path.join(__dirname, `uploads/${date}/files`);
 const mongoose = require('mongoose');
-const json = require('json');
+const RedisStore = require('connect-redis')(session)
+const passport = require('passport-local').Strategy
+app.use(session({
+    store: new RedisStore({
+      url: config.redisStore.url
+    }),
+    secret: config.redisStore.secret,
+    resave: false,
+    saveUninitialized: false
+  }))
+  app.use(passport.initialize())
+  app.use(passport.session())
+
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
@@ -31,6 +43,7 @@ const formDataSchema = new mongoose.Schema({
     mobileNo: String,
     password: String,
    });
+
 
 // Create a model based on the schema
 const FormData = mongoose.model('FormData', formDataSchema);

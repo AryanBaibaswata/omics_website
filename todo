@@ -1,1 +1,5 @@
 40-58: newserver.js : if-else signup and login, mash in the mongodb support
+also,
+find a way to have the uploads work like so,
+uploads/<userid>/<datetime>/files
+multiqc_reports/<userid>/<datetime>/files
