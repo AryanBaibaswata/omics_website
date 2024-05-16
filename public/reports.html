@@ -1,14 +1,158 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landing</title>
+    <title>Genome Analysis Website</title>
 </head>
+
+<link rel="stylesheet" type="text/css" href="base.css">
+
 <body>
-    <p>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti, debitis delectus voluptatem iste, similique laudantium tenetur laboriosam excepturi atque non incidunt minima at amet ipsam animi reiciendis expedita veniam accusamus. Lorem ipsum dolor sit amet consectetur adipisicing elit. Nam, debitis incidunt porro dolore ea, aspernatur itaque perspiciatis obcaecati, sunt deleniti odio assumenda! Sapiente ea deleniti asperiores aliquam corporis exercitationem tempore! Lorem ipsum dolor sit amet consectetur adipisicing elit. Suscipit debitis optio eum tempora dolores at tenetur cumque, perspiciatis dolorem perferendis minus corporis eos iste a nostrum voluptas neque explicabo illum? Lorem ipsum dolor sit amet consectetur adipisicing elit. Odit officia velit maxime, facilis laborum repellat. Nam, quidem! Vitae neque reiciendis velit enim, omnis itaque quas corporis eveniet maiores! Sit, enim.
-    </p>
-    <a href></a>
+    <nav class="navbar">
+        <a href="">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/AIIMS_New_Delhi.png" alt="Home" width="64">
+        </a>
+        <div class="navsec1">
+            <h1>Genome Analysis</h1>
+        </div>
+        <div class="navsec2">
+            <img src="https://cmie-aiims.in/wp-content/uploads/2022/04/ccrf-logo.jpg" alt="India" width="64">
+        </div>
+    </nav>
+    <div class='container'>
+        <div class="topnav" id="myTopnav">
+            <a href="#home" class="active">Home</a>
+            <a href="#news">News</a>
+            <a href="#contact">Contact</a>
+            <div class="dropdown">
+                <button class="dropbtn">Dropdown
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#">Link 1</a>
+                    <a href="#">Link 2</a>
+                    <a href="#">Link 3</a>
+                </div>
+            </div>
+            <a href="#about">About</a>
+            <a href="javascript:void(0);" class="icon" onclick="myFunction()">&#9776;</a>
+        </div>
+
+        <div class="form">
+            <!-- <form id="reportForm" method="GET">
+            <label for="token">Enter Token:</label><br>
+            <input type="text" id="token" name="token" placeholder="Enter your token">
+            <button onclick="getReport()">Get Report</button>
+            <br><br>
+            <div id="report"></div>
+            <br><br>
+        </form> -->
+            <form id="uploadForm" method="POST" enctype="multipart/form-data">
+               
+                <label for="genomeFiles">Select FASTQ.GZ file:</label><br>
+                <input type="file" id="genomeFiles" name="genomeFiles" accept=".fastq.gz" multiple required>
+                <br>
+                <button type="button" onclick="uploadFiles()">Upload</button>
+            </form>
+        </div>.
+
+        <div id="report"></div>
+
+    </div>
+
+    <script>
+        function myFunction() {
+            var x = document.getElementById("myTopnav");
+            if (x.className === "topnav") {
+                x.className += " responsive";
+            } else {
+                x.className = "topnav";
+            }
+        }
+
+        // // Function to generate a random token
+        // function generateToken() {
+        //     var length = 10;
+        //     var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        //     var token = '';
+        //     for (var i = length; i > 0; --i) {
+        //         token += chars[Math.floor(Math.random() * chars.length)];
+        //     }
+        //     return token;
+        // }
+
+        // // Function to generate and display the token
+        // function displayGeneratedToken() {
+        //     var token = generateToken();
+        //     document.getElementById("generatedToken").value = token;
+        // }
+
+        // // Function to copy the generated token to clipboard
+        // function copyToken() {
+        //     var tokenField = document.getElementById("generatedToken");
+        //     tokenField.select();
+        //     document.execCommand("copy");
+        //     alert("Token copied to clipboard!");
+        // }
+
+
+        // // Generate and display the token on page load
+        // window.onload = function () {
+        //     displayGeneratedToken();
+        // };
+
+        // Function to fetch the report
+
+        function getReport() {
+            var xhr = new XMLHttpRequest();
+
+            // Fetching the list of directories
+            xhr.open('GET', '/multiqc_reports', true);
+            xhr.onload = function () {
+                if (xhr.status == 200) {
+                    var directories = JSON.parse(xhr.responseText);
+
+                    // Sorting directories by date
+                    directories.sort(function (a, b) {
+                        return new Date(b.replace(/-/g, ':')) - new Date(a.replace(/-/g, ':'));
+                    });
+
+                    // Getting the most recent directory
+                    var mostRecentDir = directories[0];
+
+                    // Fetching the report from the most recent directory
+                    xhr.open('GET', `/multiqc_reports/${mostRecentDir}/multiqc_report.html`, true);
+                    xhr.onload = function () {
+                        if (xhr.status == 200) {
+                            document.getElementById('report').innerHTML = xhr.responseText;
+                        } else {
+                            document.getElementById('report').innerHTML = 'Error occurred while fetching the report';
+                        }
+                    };
+                    xhr.send();
+                } else {
+                    document.getElementById('report').innerHTML = 'Error occurred while fetching directory list';
+                }
+            };
+            xhr.send();
+        }
+
+
+        // Function to upload files
+        function uploadFiles() {
+            
+            var formData = new FormData(document.getElementById('uploadForm'));
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+            xhr.onload = function () {
+                if (xhr.status == 200) {
+                    document.getElementById('report').innerHTML = xhr.responseText;
+                } else {
+                    document.getElementById('report').innerHTML = 'Error occurred during upload';
+                }
+            };
+            xhr.send(formData); 
+        }
+    </script>
 </body>
 </html>

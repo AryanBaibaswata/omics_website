@@ -8,6 +8,57 @@ const app = express();
 const port = 3000;
 const date = new Date().toISOString().replace(/:/g, '-');
 const uploadPath = path.join(__dirname, `uploads/${date}/files`);
+
+
+app.use(express.static('public'));
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/landing.html');
+});
+
+// Connect to MongoDB
+mongoose.connect('mongodb+srv://shrinidhivasant:shri123@cluster0.qpjxkfz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('Error connecting to MongoDB:', err));
+
+// Define a schema for the form data
+const formDataSchema = new mongoose.Schema({
+    email: String,
+    name: String,
+    mobileNo: String,
+    password: String,
+   });
+
+// Create a model based on the schema
+const FormData = mongoose.model('FormData', formDataSchema);
+
+app.use(express.urlencoded({ extended: true }));
+
+// Route to handle form submission
+app.post('/submit-form', async (req, res) => {
+    try {
+        // Create a new document with the form data
+        const formData = new FormData({
+            email: req.body.email,
+            name: req.body.name,
+            mobileNo: req.body.mobileno,
+            password: req.body.pwd
+        });
+
+        // Save the document to the database
+        await formData.save();
+
+        res.send('Form data saved to MongoDB!');
+    } catch (err) {
+        console.error('Error saving form data to MongoDB:', err);
+        res.status(500).send('Internal server error');
+    }
+});
+
+
+
 // Create a storage object with the desired destination
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -23,7 +74,6 @@ const storage = multer.diskStorage({
 // Create the multer middleware using the storage object
 const upload = multer({ storage: storage });
 
-app.use(express.static('public'));
 
 app.post('/upload', upload.array('genomeFiles', 20), (req, res) => {
     const filePaths = req.files.map(file => file.path);
