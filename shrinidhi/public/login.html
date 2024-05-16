@@ -22,18 +22,21 @@
 </nav>
 
 <body>
- <div class="form_container">
+  <div class="form_container">
     <div id="feedback-form">
         <h2 class="header" id="signup_header">Sign Up</h2>
         <div>
-          <form action="/submit-form" method="POST">
+          
             
-            <div class="hiddenelements">
-              <input type="text" name="userid/email" id="signup_email" placeholder="UserID/Email Address">
-              <input type="text" name="Password" id="signup_password" placeholder="Password">
-              <label for="signup">Create an account</label><a href="#" id="sign_up_link">Sign Up</a>
-            </div>
             <div class="showelements">
+            <form action="/submit-form" method="POST">
+              <input type="text" name="userid/email" id="txt1" placeholder="UserID/Email Address">
+              <input type="text" name="Password" id="txt2" placeholder="Password">
+              <label for="signup">Create an account</label><a href="#" id="sign_up_link">Sign Up</a>
+            </form>
+            </div>
+            <div class="hiddenelements">
+            
             <input type="text" name="email" placeholder="Email"></input>
             <input type="text" name="name" placeholder="Name"></input>
             <input type="text" name="mobileno" placeholder="Mobile No"></input>
