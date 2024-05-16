@@ -2,10 +2,10 @@
   "name": "omics_website",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "newserver.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "dev": "nodemon newserver.js",
+    "start": "node newserver.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
