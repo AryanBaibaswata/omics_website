@@ -24,40 +24,41 @@
 <body>
   <div class="form_container">
     <div id="feedback-form">
-        <h2 class="header" id="signup_header">Sign Up</h2>
-        <div>
-          
-            
-            <div class="showelements">
-            <form action="/submit-form" method="POST">
+       
+        <div> 
+          <div class="showelements">
+            <form action="/submit-form" id="form1" method="POST">
+              <h2 class="header" id="signup_header">Login</h2>
               <input type="text" name="userid/email" id="txt1" placeholder="UserID/Email Address">
               <input type="text" name="Password" id="txt2" placeholder="Password">
               <label for="signup">Create an account</label><a href="#" id="sign_up_link">Sign Up</a>
+              <button type="submit" id="submit_button1">Login</button>
             </form>
-            </div>
-            <div class="hiddenelements">
-            
+          </div>
+        <div class="hiddenelements">
+          <form action="/submit-form" id="form2" method="POST">
+            <h2 class="header" id="signup_header">Sign Up</h2>
             <input type="text" name="email" placeholder="Email"></input>
             <input type="text" name="name" placeholder="Name"></input>
             <input type="text" name="mobileno" placeholder="Mobile No"></input>
             <input type="password" name="pwd" placeholder="Enter Password"></input>
             <input type="password" name="reenterpwd" placeholder="Re-enter Password"></input>
-            <label for="login">Already have an account?</label><a href="#" id="flip-link">Login</a>
-            </div> 
-            
-            
-            <button type="submit" id="submit_button">Sign Up</button>
+            <label for="login">Already have an account?</label><a href="#" id="login_link">Login</a>
+            <button type="submit" id="submit_button2">Sign Up</button>
           </form>
+        </div> 
+              
         </div>
       </div>
   </div>    
 </body>
 <script>
-document.querySelector('#flip-link').addEventListener('click', function(event) {
+
+document.querySelector('#sign_up_link').addEventListener('click', function(event) {
     event.preventDefault(); // Prevent default link behavior
 
     //get the content of header label of form
-    var changeheader = document.getElementById('signup_header');
+    const changeheader = document.getElementById('signup_header');
 
     //check current content and switch it
     if (changeheader.textContent === 'Sign Up'){
