@@ -9,18 +9,18 @@ const port = 3000;
 const date = new Date().toISOString().replace(/:/g, '-');
 const uploadPath = path.join(__dirname, `uploads/${date}/files`);
 const mongoose = require('mongoose');
-const RedisStore = require('connect-redis')(session)
-const passport = require('passport-local').Strategy
-app.use(session({
-    store: new RedisStore({
-      url: config.redisStore.url
-    }),
-    secret: config.redisStore.secret,
-    resave: false,
-    saveUninitialized: false
-  }))
-  app.use(passport.initialize())
-  app.use(passport.session())
+// const RedisStore = require('connect-redis')(session)
+// const passport = require('passport-local').Strategy
+// app.use(session({
+//     store: new RedisStore({
+//       url: config.redisStore.url
+//     }),
+//     secret: config.redisStore.secret,
+//     resave: false,
+//     saveUninitialized: false
+//   }))
+//   app.use(passport.initialize())
+//   app.use(passport.session())
 
 app.use(express.static('public'));
 
@@ -30,6 +30,8 @@ app.get('/', (req, res) => {
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://shrinidhivasant:shri123@cluster0.qpjxkfz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+
+
 
 })
 .then(() => console.log('Connected to MongoDB'))
@@ -49,6 +51,64 @@ const formDataSchema = new mongoose.Schema({
 const FormData = mongoose.model('FormData', formDataSchema);
 
 app.use(express.urlencoded({ extended: true }));
+
+app.post('/register', asyncHandler(async (req, res) => {
+    const { email, name, phone, password, trash } = req.body;
+
+    if (!name || !email || !password) {
+        res.status(400);
+        throw new Error('Please add all fields');
+    }
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+        res.status(400);
+        throw new Error('User already exists');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+    });
+
+    if (user) {
+        res.status(201).json({
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            token: generateToken(user._id),
+        });
+    } else {
+        res.status(400);
+        throw new Error('Invalid user data');
+    }
+}));
+
+// Login user
+app.post('/login', asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+        res.json({
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            token: generateToken(user._id),
+        });
+    } else {
+        res.status(400);
+        throw new Error('Invalid credentials');
+    }
+}));
+
+// File upload setup
+
 
 // Route to handle form submission
 app.post('/submit-form', async (req, res) => {

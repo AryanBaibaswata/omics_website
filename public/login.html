@@ -29,9 +29,9 @@
       <div>
 
         <div class="showelements">
-          <form action="/submit-form" id="form1" method="POST">
+          <form action="/login" id="form1" method="POST">
             <h2 class="header" id="signup_header">Login</h2>
-            <input type="text" name="userid/email" id="txt1" placeholder="UserID/Email Address">
+            <input type="text" name="email" id="txt1" placeholder="UserID/Email Address">
             <input type="text" name="Password" id="txt2" placeholder="Password">
             <label for="signup">Create an account</label><a href="#" id="sign_up_link">Sign Up</a>
             <button type="submit" id="submit_button1">Login</button>
@@ -39,7 +39,7 @@
         </div>
 
         <div class="hiddenelements">
-          <form action="/submit-form" id="form2" method="POST" onsubmit="return checkPassword()">
+          <form action="/register" id="form2" method="POST" onsubmit="return checkPassword()">
             <h2 class="header" id="signup_header">Sign Up</h2>
             <input type="email" name="email" placeholder="Email"></input>
             <input type="text" name="name" placeholder="Name"></input>
@@ -133,7 +133,6 @@
 
     // If same return True. 
     else {
-      alert("Password Match: Welcome to GeeksforGeeks!")
       return true;
     }
   }
