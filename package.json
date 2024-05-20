@@ -5,7 +5,7 @@
   "main": "newserver.js",
   "scripts": {
     "dev": "nodemon newserver.js",
-    "start": "node newserver.js",
+    "start": "node newserver.js --ignore multiqc_reports",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,6 +16,7 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
+    "gridfs-stream": "^1.1.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.3.4",
     "multer": "^1.4.5-lts.1",

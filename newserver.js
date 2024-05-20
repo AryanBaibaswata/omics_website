@@ -1,5 +1,6 @@
 const path = require('path');
 const express = require('express');
+const bcrypt = require('bcryptjs')
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const { exec } = require('child_process');
@@ -9,6 +10,7 @@ const port = 3000;
 const date = new Date().toISOString().replace(/:/g, '-');
 const uploadPath = path.join(__dirname, `uploads/${date}/files`);
 const mongoose = require('mongoose');
+const User = require('./models/user.model');
 // const RedisStore = require('connect-redis')(session)
 // const passport = require('passport-local').Strategy
 // app.use(session({
@@ -37,101 +39,92 @@ mongoose.connect('mongodb+srv://shrinidhivasant:shri123@cluster0.qpjxkfz.mongodb
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('Error connecting to MongoDB:', err));
 
-// Define a schema for the form data
-const formDataSchema = new mongoose.Schema({
-    id: String,
-    email: String,
-    name: String,
-    mobileNo: String,
-    password: String,
-   });
 
 
-// Create a model based on the schema
-const FormData = mongoose.model('FormData', formDataSchema);
 
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/register', asyncHandler(async (req, res) => {
-    const { email, name, phone, password, trash } = req.body;
+// login and register
 
-    if (!name || !email || !password) {
-        res.status(400);
-        throw new Error('Please add all fields');
-    }
+// app.post('/register', asyncHandler(async (req, res) => {
+//     const { email, name, phone, password, trash } = req.body;
 
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-        res.status(400);
-        throw new Error('User already exists');
-    }
+//     if (!name || !email || !password) {
+//         res.status(400);
+//         throw new Error('Please add all fields');
+//     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+//     const userExists = await User.findOne({ email });
+//     if (userExists) {
+//         res.status(400);
+//         throw new Error('User already exists');
+//     }
 
-    const user = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-    });
+//     const salt = await bcrypt.genSalt(10);
+//     const hashedPassword = await bcrypt.hash(password, salt);
 
-    if (user) {
-        res.status(201).json({
-            _id: user.id,
-            name: user.name,
-            email: user.email,
-            token: generateToken(user._id),
-        });
-    } else {
-        res.status(400);
-        throw new Error('Invalid user data');
-    }
-}));
+//     const user = await User.create({
+//         name,
+//         email,
+//         password: hashedPassword,
+//     });
 
-// Login user
-app.post('/login', asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+//     if (user) {
+//         res.status(201).json({
+//             _id: user.id,
+//             name: user.name,
+//             email: user.email,
+//             token: generateToken(user._id),
+//         });
+//     } else {
+//         res.status(400);
+//         throw new Error('Invalid user data');
+//     }
+// }));
 
-    const user = await User.findOne({ email });
+// // Login user
+// app.post('/login', asyncHandler(async (req, res) => {
+//     const { email, password } = req.body;
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-        res.json({
-            _id: user.id,
-            name: user.name,
-            email: user.email,
-            token: generateToken(user._id),
-        });
-    } else {
-        res.status(400);
-        throw new Error('Invalid credentials');
-    }
-}));
+//     const user = await User.findOne({ email });
 
-// File upload setup
+//     if (user && (await bcrypt.compare(password, user.password))) {
+//         res.json({
+//             _id: user.id,
+//             name: user.name,
+//             email: user.email,
+//             token: generateToken(user._id),
+//         });
+//     } else {
+//         res.status(400);
+//         throw new Error('Invalid credentials');
+//     }
+// }));
 
 
-// Route to handle form submission
-app.post('/submit-form', async (req, res) => {
-    try {
-        // Create a new document with the form data
+
+// // Route to handle form submission
+// app.post('/submit-form', async (req, res) => {
+//     try {
+//         // Create a new document with the form data
         
-        const formData = new FormData({
-            id: (req.body.name.slice(0,4) + req.body.email.slice(0,4) + req.body.mobileno.slice(0,4) + req.body.pwd.slice(0,4)),
-            email: req.body.email,
-            name: req.body.name,
-            mobileNo: req.body.mobileno,
-            password: req.body.pwd
-        });
-        console.log(JSON.stringify(formData));
-        // Save the document to the database
-        await formData.save();
+//         const formData = new FormData({
+//             id: (req.body.name.slice(0,4) + req.body.email.slice(0,4) + req.body.mobileno.slice(0,4) + req.body.pwd.slice(0,4)),
+//             email: req.body.email,
+//             name: req.body.name,
+//             mobileNo: req.body.mobileno,
+//             password: req.body.pwd
+//         });
+//         console.log(JSON.stringify(formData));
+//         // Save the document to the database
+//         await formData.save();
 
-        res.send('Form data saved to MongoDB!');
-    } catch (err) {
-        console.error('Error saving form data to MongoDB:', err);
-        res.status(500).send('Internal server error');
-    }
-});
+//         res.send('Form data saved to MongoDB!');
+//     } catch (err) {
+//         console.error('Error saving form data to MongoDB:', err);
+//         res.status(500).send('Internal server error');
+//     }
+// });
 
 
 
