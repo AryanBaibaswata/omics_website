@@ -17,6 +17,6 @@ done
 
 # Run MultiQC to generate a report for all fastq.gz files and save it in the specified destination folder
 destination_folder="${@:$#}"
-multiqc . -o "multiqc_reports/" -f 
+multiqc . -o "multiqc_reports/$destination_folder" -f 
 
 

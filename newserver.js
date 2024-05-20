@@ -1,16 +1,15 @@
-const path = require('path');
-const express = require('express');
-const bcrypt = require('bcryptjs')
+const middleware = require('./utils/middleware');
 const bodyParser = require('body-parser');
 const multer = require('multer');
+const express = require('express');
+const bcrypt = require('bcryptjs')
 const { exec } = require('child_process');
 const fs = require('fs');
 const app = express();
-const port = 3000;
-const date = new Date().toISOString().replace(/:/g, '-');
-const uploadPath = path.join(__dirname, `uploads/${date}/files`);
+const config = require('./utils/config');
 const mongoose = require('mongoose');
 const User = require('./models/user.model');
+const cors = require('cors');
 // const RedisStore = require('connect-redis')(session)
 // const passport = require('passport-local').Strategy
 // app.use(session({
@@ -23,7 +22,7 @@ const User = require('./models/user.model');
 //   }))
 //   app.use(passport.initialize())
 //   app.use(passport.session())
-
+app.use(middleware.requestLogger)
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
@@ -32,9 +31,6 @@ app.get('/', (req, res) => {
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://shrinidhivasant:shri123@cluster0.qpjxkfz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
-
-
-
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('Error connecting to MongoDB:', err));
@@ -128,8 +124,11 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
-// Create a storage object with the desired destination
+
+
+const uploadPath = path.join(__dirname, `uploads/${date}/files`);
 const storage = multer.diskStorage({
+    
     destination: (req, file, cb) => {
 
         fs.mkdirSync(uploadPath, { recursive: true });
@@ -143,6 +142,7 @@ const storage = multer.diskStorage({
 // Create the multer middleware using the storage object
 const upload = multer({ storage: storage });
 
+const date = new Date().toISOString().replace(/:/g, '-');
 
 app.post('/upload', upload.array('genomeFiles', 20), (req, res) => {
     const filePaths = req.files.map(file => file.path);
@@ -170,6 +170,6 @@ app.get('/multiqc_report', (req, res) => {
     res.sendFile(reportPath);
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+app.listen(config.port, () => {
+    console.log(`Server is running on port ${config.port}`);
 });
