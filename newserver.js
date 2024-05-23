@@ -10,6 +10,7 @@ const config = require('./utils/config');
 const mongoose = require('mongoose');
 const User = require('./models/user.model');
 const cors = require('cors');
+const path = require('path');
 // const RedisStore = require('connect-redis')(session)
 // const passport = require('passport-local').Strategy
 // app.use(session({
@@ -124,6 +125,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
+const date = new Date().toISOString().replace(/:/g, '-');
 
 
 const uploadPath = path.join(__dirname, `uploads/${date}/files`);
@@ -142,7 +144,6 @@ const storage = multer.diskStorage({
 // Create the multer middleware using the storage object
 const upload = multer({ storage: storage });
 
-const date = new Date().toISOString().replace(/:/g, '-');
 
 app.post('/upload', upload.array('genomeFiles', 20), (req, res) => {
     const filePaths = req.files.map(file => file.path);
@@ -161,6 +162,45 @@ app.post('/upload', upload.array('genomeFiles', 20), (req, res) => {
             }
             res.send(data);
         });
+    });
+});
+
+function fetchReports() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/multiqc_reports', true);
+    xhr.onload = function () {
+        if (xhr.status == 200) {
+            var directories = JSON.parse(xhr.responseText);
+
+            // Sort directories by date
+            directories.sort(function (a, b) {
+                return new Date(b.replace(/-/g, ':')) - new Date(a.replace(/-/g, ':'));
+            });
+
+            // Generate the list of links
+            var reportListHTML = '<h2>Previous Reports</h2><ul>';
+            directories.forEach(function (dir) {
+                reportListHTML += `<li><a href="/multiqc_reports/${dir}/multiqc_report.html" target="_blank">${dir}</a></li>`;
+            });
+            reportListHTML += '</ul>';
+
+            document.getElementById('reportList').innerHTML = reportListHTML;
+        } else {
+            document.getElementById('reportList').innerHTML = 'Error occurred while fetching directory list';
+        }
+    };
+    xhr.send();
+}
+
+
+app.get('/multiqc_reports', (req, res) => {
+    const reportsDir = path.join(__dirname, 'multiqc_reports');
+    fs.readdir(reportsDir, (err, files) => {
+        if (err) {
+            res.status(500).send('Error occurred while fetching reports');
+            return;
+        }
+        res.json(files.filter(file => fs.statSync(path.join(reportsDir, file)).isDirectory()));
     });
 });
 

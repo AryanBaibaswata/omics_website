@@ -3,3 +3,11 @@ also,
 find a way to have the uploads work like so,
 uploads/<userid>/<datetime>/files
 multiqc_reports/<userid>/<datetime>/files
+
+CHANGE THE FOOTER LINKS AND content
+
+add a step chart for the pipeline
+add email and phone messaging once it is done
+
+
+add user stats for how many users, how many samples processed, how many instituitions

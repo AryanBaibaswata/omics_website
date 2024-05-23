@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Landing</title>
     <link rel="stylesheet" type="text/css" href="landing.css">
+    <link rel="stylesheet" type="text/css" href="footer.css">
 </head>
 
 <body>
@@ -54,7 +55,7 @@
             <a class="next" onclick="plusSlides(1)">&#10095;</a>
         </div>
         <br>
-
+        
         <!-- The dots/circles -->
         <div style="text-align:center">
             <span class="dot" onclick="currentSlide(1)"></span>
@@ -62,12 +63,25 @@
             <span class="dot" onclick="currentSlide(3)"></span>
         </div>
 
-        <section class = "footer">
-            <div class = "footer-content">
-                
+        <footer class="footer">
+            <div class="footer-column">
+                <h4>About Us</h4>
+                <p> Website made in-house by the team at CCRF Bioinformatics!</p>
             </div>
-
-        </section>
+            <div class="footer-column">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Reports</a></li>
+                    <li><a href="#">Login/Signup</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Contact</h4>
+                <p>Email: info@example.com</p>
+                <p>Phone: +123 456 7890</p>
+            </div>
+        </footer>
 
         <script>
             let slideIndex = 0;
@@ -82,7 +96,7 @@
                 slideIndex++;
                 if (slideIndex > slides.length) { slideIndex = 1 }
                 slides[slideIndex - 1].style.display = "block";
-                setTimeout(showSlides, 2000); // Change image every 2 seconds
+                setTimeout(showSlides, 7000); // Change image every 7 seconds
             } 
         </script>
 
