@@ -147,7 +147,7 @@ const upload = multer({ storage: storage });
 
 app.post('/upload', upload.array('genomeFiles', 20), (req, res) => {
     const filePaths = req.files.map(file => file.path);
-    exec(`bash fastqc.sh ${filePaths.join(' ')} ${date}`, (error, stdout, stderr) => {
+    exec(`bash pipelines/fastqc.sh ${filePaths.join(' ')} ${date}`, (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
             res.status(500).send('Error occurred during processing');
