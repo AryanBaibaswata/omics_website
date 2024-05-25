@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon newserver.js --ignore multiqc_reports/",
     "start": "node newserver.js ",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pipe": "nodemon pipeline.js --ignore multiqc_reports/"
   },
   "keywords": [],
   "author": "",
