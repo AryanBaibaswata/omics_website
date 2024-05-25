@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viral Genome Assembly</title>
+</head>
+<body>
+    <h1>Upload FASTQ Files</h1>
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="files" id="files" accept=".fastq.gz" multiple required>
+        <br><br>
+        <button type="submit">Upload and Process</button>
+    </form>
+
+    <h2>Progress:</h2>
+    <pre id="progress"></pre>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const progress = document.getElementById('progress');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.text())
+              .then(data => {
+                  console.log(data);
+              })
+              .catch(error => console.error('Error:', error));
+
+            const eventSource = new EventSource('/progress');
+            eventSource.onmessage = (event) => {
+                progress.textContent += event.data + '\n';
+            };
+        });
+    </script>
+</body>
+</html>
