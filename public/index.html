@@ -1,18 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" type="text/css" href="pipe.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viral Genome Assembly</title>
 </head>
 <body>
+    <nav class="navbar">
+        <a href="">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/AIIMS_New_Delhi.png" alt="Home" width="64">
+        </a>
+        <div class="navsec1">
+            <h1>AIIMS OMICS TOOLBOX</h1>
+        </div>
+        <div class="navsec2">
+            <img src="https://cmie-aiims.in/wp-content/uploads/2022/04/ccrf-logo.jpg" alt="India" width="64">
+        </div>
+      </nav>
+
+      <div class='container'>
+        <div class="topnav" id="myTopnav">
+            <a href="landing.html" >Home</a>
+            <a href = "reports.html" class="active">Reports</a>
+            <a href = "login.html">Login</a>
+        </div>
+    </div>
+    <div class="form">
     <h1>Upload FASTQ Files</h1>
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="files" id="files" accept=".fastq.gz" multiple required>
         <br><br>
         <button type="submit">Upload and Process</button>
     </form>
-
+    </div>
     <h2>Progress:</h2>
     <pre id="progress"></pre>
 

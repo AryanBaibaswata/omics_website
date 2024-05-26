@@ -27,7 +27,7 @@
             <a href = "reports.html" class="active">Reports</a>
             <a href = "login.html">Login</a>
         </div>
-
+    </div>
         <div class="form">
             <!-- <form id="reportForm" method="GET">
             <label for="token">Enter Token:</label><br>
@@ -37,6 +37,7 @@
             <div id="report"></div>
             <br><br>
         </form> -->
+        <div>
             <form id="uploadForm" method="POST" enctype="multipart/form-data">
                
                 <label for="genomeFiles">Select FASTQ.GZ file:</label><br>
@@ -44,8 +45,9 @@
                 <br>
                 <button type="button" onclick="uploadFiles()">Upload</button>
             </form>
-        </div>.
-
+        </div>
+        </div>
+        
         <div id="report"></div>
 
     </div>
