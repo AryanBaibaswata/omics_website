@@ -54,8 +54,8 @@ basedir="${basedir}"
 samples=(
 ${samplesList}
 )
-GENOMEIDX1="/mnt/c/Users/asus/genome_assembly/genome_sars_cov2/NC_045512.2.fasta"
-
+GENOMEIDX1="/home/aryan/omics_website/utils/sars_cov_2"
+GENOMEIDX="/home/aryan/omics_website/utils/NC_045512.2.fasta"
 for sample_name in "\${samples[@]}"; do
     echo "Step-1.0: FastQC Quality Control Report for \${sample_name}"
     fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/\${sample_name}_1.fastq.gz" "\${basedir}/\${sample_name}_2.fastq.gz"
@@ -64,39 +64,42 @@ for sample_name in "\${samples[@]}"; do
     fastp -i "\${basedir}/\${sample_name}_1.fastq.gz" -o "\${basedir}/\${sample_name}_P1.fastq" \
           -I "\${basedir}/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
           --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2> "\${basedir}/fastp-\${sample_name}.log"
-
+    sleep 2
     echo "Step-2: Read Alignment for \${sample_name}"
     bowtie2 -p 64 -x "\${GENOMEIDX1}" -1 "\${basedir}/\${sample_name}_P1.fastq" -2 "\${basedir}/\${sample_name}_P2.fastq" -S "\${basedir}/\${sample_name}.sam"
-
+    sleep 2
     echo "Step-3: Conversion Of Sam To BAM File for \${sample_name}"
     samtools view -b "\${basedir}/\${sample_name}.sam" -o "\${basedir}/\${sample_name}.bam"
-
+    sleep 2
     echo "Step-4: Alignment Metrics for \${sample_name}"
     samtools flagstat "\${basedir}/\${sample_name}.bam" > "\${basedir}/\${sample_name}.flagstat.txt"
-
+    sleep 2
     echo "Step-5: Conversion of BAM To Sorted BAM for \${sample_name}"
     samtools sort "\${basedir}/\${sample_name}.bam" -o "\${basedir}/\${sample_name}.sorted.bam"
-
+    sleep 2
     echo "Step-6: Deriving Low Coverage Bed File for \${sample_name}"
     samtools depth "\${basedir}/\${sample_name}.sorted.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt"
-
+    sleep 2
     echo "Step-7: Extracting start end coordinates of missing read segments for \${sample_name}"
-    python3 "\${basedir}/extract_intervalsforBED.py" "\${basedir}/coverage_\${sample_name}.txt" > "\${basedir}/output_\${sample_name}.bed"
-
+    python3 "pipelines/extract_intervalsforBED.py" "\${basedir}/coverage_\${sample_name}.txt" > "\${basedir}/output_\${sample_name}.bed"
+    sleep 2
     echo "Step-8: Performing N-masking for \${sample_name}"
-    bedtools maskfasta -fi "\${GENOMEIDX1}" -bed "\${basedir}/output_\${sample_name}.bed" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta"
-
+    bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${basedir}/output_\${sample_name}.bed" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta"
+    sleep 2
     echo "Step-9: Removing duplicate reads from Sorted Bam Files for \${sample_name}"
     samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam"
-
+    sleep 2
     echo "Step-10: Generation of VCF for \${sample_name}"
-    bcftools mpileup -f "\${GENOMEIDX1}" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz"
-
+    bcftools mpileup -f "\${GENOMEIDX}" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz"
+    sleep 2
     echo "Step-11: Generation of VCF Index for \${sample_name}"
     bcftools index "\${basedir}/\${sample_name}.vcf.gz"
-
+    sleep 2
     echo "Step-12: Generation of viral genome fasta for \${sample_name}"
     cat "\${basedir}/\${sample_name}_masked.fasta" | bcftools consensus "\${basedir}/\${sample_name}.vcf.gz" > "\${basedir}/\${sample_name}_genome.fa"
+
+    sleep 2
+    echo "complete!"
 done
 `;
 
@@ -110,21 +113,24 @@ done
         console.log(`Expecting sample files: ${path.join(basedir, `${sample}_1.fastq.gz`)}, ${path.join(basedir, `${sample}_2.fastq.gz`)}`);
     });
 
+    const progressFile = path.join(basedir, 'progress.txt');
+    fs.writeFileSync(progressFile, ''); // Clear previous progress
+
     const child = exec(`bash ${scriptPath}`, { shell: '/bin/bash' });
 
     child.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
-        fs.appendFileSync(`${basedir}/progress.txt`, data);
+        fs.appendFileSync(progressFile, data);
     });
 
     child.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`);
-        fs.appendFileSync(`${basedir}/progress.txt`, data);
+        fs.appendFileSync(progressFile, data);
     });
 
     child.on('close', (code) => {
         console.log(`child process exited with code ${code}`);
-        fs.appendFileSync(`${basedir}/progress.txt`, `Process completed with code ${code}\n`);
+        fs.appendFileSync(progressFile, `Process completed with code ${code}\n`);
     });
 
     res.send('Pipeline execution started.');
@@ -138,16 +144,31 @@ app.get('/progress', (req, res) => {
     res.flushHeaders(); // flush the headers to establish SSE with client
 
     const progressFile = path.join(__dirname, 'uploads', 'progress.txt');
+    let fileOffset = 0;
 
-    fs.watchFile(progressFile, { interval: 1000 }, (curr, prev) => {
-        if (curr.mtime > prev.mtime) {
-            const data = fs.readFileSync(progressFile, 'utf-8');
-            res.write(`data: ${data}\n\n`);
-        }
-    });
+    const sendProgress = () => {
+        fs.readFile(progressFile, 'utf-8', (err, data) => {
+            if (err) {
+                console.error(`Error reading progress file: ${err}`);
+                res.write(`data: Error reading progress file\n\n`);
+                return;
+            }
+
+            if (data.length > fileOffset) {
+                const newContent = data.slice(fileOffset);
+                fileOffset = data.length;
+                const newLines = newContent.split('\n').filter(line => line.trim() !== '').join('\n');
+                if (newLines) {
+                    res.write(`data: ${newLines}\n\n`);
+                }
+            }
+        });
+    };
+
+    const intervalId = setInterval(sendProgress, 500); // Reduced interval to capture updates more frequently
 
     req.on('close', () => {
-        fs.unwatchFile(progressFile);
+        clearInterval(intervalId);
         res.end();
     });
 });

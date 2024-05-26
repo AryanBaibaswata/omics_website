@@ -1,4 +1,4 @@
-input_file = "coverage.txt"
+input_file = "uploads/coverage_SRR15991306.txt"
 output_file = "output.bed"
 
 with open(input_file, 'r') as infile, open(output_file, 'w') as outfile:
