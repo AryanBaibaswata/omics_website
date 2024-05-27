@@ -54,8 +54,8 @@ basedir="${basedir}"
 samples=(
 ${samplesList}
 )
-GENOMEIDX1="/home/aryan/omics_website/utils/sars_cov_2"
-GENOMEIDX="/home/aryan/omics_website/utils/NC_045512.2.fasta"
+GENOMEIDX1="/home/bioinformatics-pc55/projects/omics_website/utils/sars_cov_2"
+GENOMEIDX="/home/bioinformatics-pc55/projects/omics_website/utils/NC_045512.2.fasta"
 for sample_name in "\${samples[@]}"; do
     echo "Step-1.0: FastQC Quality Control Report for \${sample_name}"
     fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/\${sample_name}_1.fastq.gz" "\${basedir}/\${sample_name}_2.fastq.gz"
@@ -80,8 +80,11 @@ for sample_name in "\${samples[@]}"; do
     echo "Step-6: Deriving Low Coverage Bed File for \${sample_name}"
     samtools depth "\${basedir}/\${sample_name}.sorted.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt"
     sleep 2
+    
+    input_bam="\${sample}_coverage.txt"
+    output_bed="\${sample}.bed"
     echo "Step-7: Extracting start end coordinates of missing read segments for \${sample_name}"
-    python3 "pipelines/extract_intervalsforBED.py" "\${basedir}/coverage_\${sample_name}.txt" > "\${basedir}/output_\${sample_name}.bed"
+    python3 "pipelines/convert_bam_to_bed.py" "uploads/\${sample}" "uploads/\${input_bam}" "uploads/\${output_bed}"
     sleep 2
     echo "Step-8: Performing N-masking for \${sample_name}"
     bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${basedir}/output_\${sample_name}.bed" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta"
