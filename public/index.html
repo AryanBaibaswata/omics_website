@@ -5,6 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viral Genome Assembly</title>
+    <style>
+        .step {
+            padding: 10px;
+            border: 1px solid #000;
+            margin: 5px;
+            display: inline-block;
+            border-radius: 5px;
+        }
+        .blinking {
+            animation: blinkingBackground 1s infinite;
+        }
+        @keyframes blinkingBackground {
+            0% { background-color: #fff; }
+            50% { background-color: #ffff99; }
+            100% { background-color: #fff; }
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -21,29 +38,62 @@
 
       <div class='container'>
         <div class="topnav" id="myTopnav">
-            <a href="landing.html" >Home</a>
-            <a href = "reports.html" class="active">Reports</a>
-            <a href = "login.html">Login</a>
+            <a href="landing.html">Home</a>
+            <a href="reports.html" class="active">Reports</a>
+            <a href="login.html">Login</a>
         </div>
     </div>
     <div class="form">
-    <h1>Upload FASTQ Files</h1>
-    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="files" id="files" accept=".fastq.gz" multiple required>
-        <br><br>
-        <select name = "genome" id = "genome">
-            <option value = "hev">Hepatitis E</option>
-            <option value="covid"> Covid</option>
-        </select>
-        <button type="submit">Upload and Process</button>
-    </form>
+        <h1>Upload FASTQ Files</h1>
+        <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="files" id="files" accept=".fastq.gz" multiple required>
+            <br><br>
+            <select name="genome" id="genome">
+                <option value="hev">Hepatitis E</option>
+                <option value="covid">Covid</option>
+            </select>
+            <button type="submit">Upload and Process</button>
+        </form>
     </div>
-    <h2>Progress:</h2>
+
+    <h2>Pipeline Progress:</h2>
+    <div id="pipeline-steps">
+        <div class="step" id="step-1">Step-1.0: FastQC Quality Control Report</div>
+        <div class="step" id="step-2">Step-1.1: Fastp Quality Control</div>
+        <div class="step" id="step-3">Step-2: Read Alignment</div>
+        <div class="step" id="step-4">Step-3: Conversion Of Sam To BAM File</div>
+        <div class="step" id="step-5">Step-4: Alignment Metrics</div>
+        <div class="step" id="step-6">Step-5: Conversion of BAM To Sorted BAM</div>
+        <div class="step" id="step-7">Step-6: Deriving Low Coverage Bed File</div>
+        <div class="step" id="step-8">Step-7: Extracting Start End Coordinates</div>
+        <div class="step" id="step-9">Step-8: Performing N-masking</div>
+        <div class="step" id="step-10">Step-9: Removing Duplicate Reads</div>
+        <div class="step" id="step-11">Step-10: Generation of VCF</div>
+        <div class="step" id="step-12">Step-11: Generation of VCF Index</div>
+        <div class="step" id="step-13">Step-12: Generation of Viral Genome Fasta</div>
+    </div>
+
+    <h2>Progress Log:</h2>
     <pre id="progress"></pre>
 
     <script>
         const form = document.getElementById('uploadForm');
         const progress = document.getElementById('progress');
+        const steps = {
+            "FastQC Quality Control Report": "step-1",
+            "Fastp Quality Control": "step-2",
+            "Read Alignment": "step-3",
+            "Conversion Of Sam To BAM File": "step-4",
+            "Alignment Metrics": "step-5",
+            "Conversion of BAM To Sorted BAM": "step-6",
+            "Deriving Low Coverage Bed File": "step-7",
+            "Extracting start end coordinates": "step-8",
+            "Performing N-masking": "step-9",
+            "Removing duplicate reads": "step-10",
+            "Generation of VCF": "step-11",
+            "Generation of VCF Index": "step-12",
+            "Generation of viral genome fasta": "step-13"
+        };
 
         form.addEventListener('submit', (event) => {
             event.preventDefault();
@@ -61,6 +111,16 @@
             const eventSource = new EventSource('/progress');
             eventSource.onmessage = (event) => {
                 progress.textContent += event.data + '\n';
+
+                Object.keys(steps).forEach(step => {
+                    if (event.data.includes(step)) {
+                        const stepElement = document.getElementById(steps[step]);
+                        stepElement.classList.add('blinking');
+                    } else {
+                        const stepElement = document.getElementById(steps[step]);
+                        stepElement.classList.remove('blinking');
+                    }
+                });
             };
         });
     </script>

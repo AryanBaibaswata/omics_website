@@ -51,14 +51,15 @@ app.post('/upload', upload.array('files'), (req, res) => {
 
     // Set the variables based on the genome type
     if (req.body.genome === "hev") {
-        GENOMEIDX1 = "/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome";
-        GENOMEIDX = "/home/bioinformatics-pc55/projects/omics_website/utils/hev/NC_045512.2.fasta";
+        GENOMEIDX1 = "/home/aryan/omics_website/utils/hev/hev_genome";
+        GENOMEIDX = "/home/aryan/omics_website/utils/hev/NC_001434-HEV.fa";
     } else if (req.body.genome === "covid") {
-        GENOMEIDX1 = "/home/bioinformatics-pc55/projects/omics_website/utils/covid/sars_cov_2";
-        GENOMEIDX = "/home/bioinformatics-pc55/projects/omics_website/utils/covid/NC_045512.2.fasta";
+        GENOMEIDX1 = "/home/aryan/omics_website/utils/covid/sars_cov_2";
+        GENOMEIDX = "/home/aryan/omics_website/utils/covid/NC_045512.2.fasta";
     } else {
         return res.status(400).send('Invalid genome type specified.');
     }
+
     const pipelineScriptContent = `#!/bin/bash
     
     set -e
@@ -73,9 +74,10 @@ app.post('/upload', upload.array('files'), (req, res) => {
     echo "Pipeline started" > \${progress_file}
 
     for sample_name in "\${samples[@]}"; do
+        sleep 2
         echo "Step-1.0: FastQC Quality Control Report for \${sample_name}" >> \${progress_file}
         fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/\${sample_name}_1.fastq.gz" "\${basedir}/\${sample_name}_2.fastq.gz"
-    
+        sleep 2
         echo "Step-1.1: Fastp Quality Control for \${sample_name}" >> \${progress_file}
         fastp -i "\${basedir}/\${sample_name}_1.fastq.gz" -o "\${basedir}/\${sample_name}_P1.fastq" \
               -I "\${basedir}/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
@@ -96,9 +98,9 @@ app.post('/upload', upload.array('files'), (req, res) => {
         echo "Step-6: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file}
         samtools depth "\${basedir}/\${sample_name}.sorted.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt"
         sleep 2
-        
         input_bam="\${basedir}/coverage_\${sample_name}.txt"
         output_bed="\${basedir}/\${sample_name}.bed"
+        sleep 2
         echo "Step-7: Extracting start end coordinates of missing read segments for \${sample_name}" >> \${progress_file}
         python3 "pipelines/convert_bam_to_bed.py" "\${sample_name}" "\${input_bam}" "\${output_bed}"
         sleep 2
@@ -116,7 +118,6 @@ app.post('/upload', upload.array('files'), (req, res) => {
         sleep 2
         echo "Step-12: Generation of viral genome fasta for \${sample_name}" >> \${progress_file}
         cat "\${basedir}/\${sample_name}_masked.fasta" | bcftools consensus "\${basedir}/\${sample_name}.vcf.gz" > "\${basedir}/\${sample_name}_genome.fa"
-    
         sleep 2
         echo "complete!" >> \${progress_file}
     done
