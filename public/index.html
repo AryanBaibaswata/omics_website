@@ -31,6 +31,10 @@
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="files" id="files" accept=".fastq.gz" multiple required>
         <br><br>
+        <select name = "genome" id = "genome">
+            <option value = "hev">Hepatitis E</option>
+            <option value="covid"> Covid</option>
+        </select>
         <button type="submit">Upload and Process</button>
     </form>
     </div>

@@ -47,8 +47,18 @@ app.post('/upload', upload.array('files'), (req, res) => {
     }
 
     const samplesList = sampleFiles.map(sample => `    "${sample}"`).join(' \\\n');
-    const GENOMEIDX1 = "/home/aryan/omics_website/utils/sars_cov_2";
-    const GENOMEIDX = "/home/aryan/omics_website/utils/NC_045512.2.fasta";
+    let GENOMEIDX1, GENOMEIDX;
+
+    // Set the variables based on the genome type
+    if (req.body.genome === "hev") {
+        GENOMEIDX1 = "/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome";
+        GENOMEIDX = "/home/bioinformatics-pc55/projects/omics_website/utils/hev/NC_045512.2.fasta";
+    } else if (req.body.genome === "covid") {
+        GENOMEIDX1 = "/home/bioinformatics-pc55/projects/omics_website/utils/covid/sars_cov_2";
+        GENOMEIDX = "/home/bioinformatics-pc55/projects/omics_website/utils/covid/NC_045512.2.fasta";
+    } else {
+        return res.status(400).send('Invalid genome type specified.');
+    }
     const pipelineScriptContent = `#!/bin/bash
     
     set -e
