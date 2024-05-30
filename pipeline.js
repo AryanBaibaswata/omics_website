@@ -42,21 +42,21 @@ app.post('/upload', upload.array('files'), (req, res) => {
     const sampleFiles = [];
     for (let i = 0; i < files.length; i += 2) {
         const file1 = files[i].filename;
-        console.log(file1);
+        // console.log(file1);
         const file2 = files[i + 1].filename;
         if (file1.replace('_1.fastq.gz', '') === file2.replace('_2.fastq.gz', '')) {
             sampleFiles.push(file1.replace('_1.fastq.gz', ''));
-            console.log(sampleFiles);
+            // console.log(sampleFiles);
         } else if (file1.replace('_R1.fastq.gz', '') === file2.replace('_R2.fastq.gz', '')) {
             sampleFiles.push(file1.replace('_R1.fastq.gz.', ''))
-            console.log(sampleFiles);
+            // console.log(sampleFiles);
         } else {
             return res.status(400).send('File pairs do not match.');
         }
     }
     // console.log('read files')
     const samplesList = sampleFiles.map(sample => `    "${sample}"`).join(' \\\n');
-    console.log("samples list: ", samplesList);
+    // console.log("samples list: ", samplesList);
     let GENOMEIDX1, GENOMEIDX;
 
     // Set the variables based on the genome type
