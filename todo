@@ -1,13 +1,6 @@
-40-58: newserver.js : if-else signup and login, mash in the mongodb support
-also,
-find a way to have the uploads work like so,
-uploads/<userid>/<datetime>/files
-multiqc_reports/<userid>/<datetime>/files
+add a progress bar
 
-CHANGE THE FOOTER LINKS AND content
+fetch and get from local database and ncbi
 
-add a step chart for the pipeline
-add email and phone messaging once it is done
+add an about page
 
-
-add user stats for how many users, how many samples processed, how many instituitions

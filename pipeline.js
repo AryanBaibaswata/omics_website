@@ -21,45 +21,63 @@ const storage = multer.diskStorage({
     }
 });
 
+
+
 const upload = multer({ storage });
+// console.log("read part till storage")
 
 // Middleware to serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-
+// console.log("read till middleware")
 // Route to handle file uploads and trigger the pipeline
 app.post('/upload', upload.array('files'), (req, res) => {
+    // console.log(upload);
     const files = req.files;
     if (files.length % 2 !== 0) {
         return res.status(400).send('Please upload files in pairs.');
     }
-
+    // console.log("files uploaded")
     const basedir = path.resolve(__dirname, 'uploads');
+    // console.log(basedir);
     const sampleFiles = [];
-
     for (let i = 0; i < files.length; i += 2) {
         const file1 = files[i].filename;
+        console.log(file1);
         const file2 = files[i + 1].filename;
         if (file1.replace('_1.fastq.gz', '') === file2.replace('_2.fastq.gz', '')) {
             sampleFiles.push(file1.replace('_1.fastq.gz', ''));
+            console.log(sampleFiles);
+        } else if (file1.replace('_R1.fastq.gz', '') === file2.replace('_R2.fastq.gz', '')) {
+            sampleFiles.push(file1.replace('_R1.fastq.gz.', ''))
+            console.log(sampleFiles);
         } else {
             return res.status(400).send('File pairs do not match.');
         }
     }
-
+    // console.log('read files')
     const samplesList = sampleFiles.map(sample => `    "${sample}"`).join(' \\\n');
+    console.log("samples list: ", samplesList);
     let GENOMEIDX1, GENOMEIDX;
 
     // Set the variables based on the genome type
     if (req.body.genome === "hev") {
-        GENOMEIDX1 = "/home/aryan/omics_website/utils/hev/hev_genome";
-        GENOMEIDX = "/home/aryan/omics_website/utils/hev/NC_001434-HEV.fa";
+        GENOMEIDX1 = 
+        // "/home/aryan/omics_website/utils/hev/hev_genome";
+        "/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome";
+        GENOMEIDX = 
+        // "/home/aryan/omics_website/utils/hev/NC_001434-HEV.fa";
+        "/home/bioinformatics-pc55/projects/omics_website/utils/hev/NC_001434-HEV.fa";
     } else if (req.body.genome === "covid") {
-        GENOMEIDX1 = "/home/aryan/omics_website/utils/covid/sars_cov_2";
-        GENOMEIDX = "/home/aryan/omics_website/utils/covid/NC_045512.2.fasta";
+        GENOMEIDX1 = 
+            // "/home/aryan/omics_website/utils/covid/sars_cov_2";
+            "/home/bioinformatics-pc55/projects/omics_website/utils/covid/sars_cov_2";
+        GENOMEIDX = 
+            // "/home/aryan/omics_website/utils/covid/NC_045512.2.fasta";
+            "/home/bioinformatics-pc55/projects/omics_website/utils/covid/NC_045512.2.fasta";
     } else {
         return res.status(400).send('Invalid genome type specified.');
     }
-
+    console.log("read till pipeline script content")
     const pipelineScriptContent = `#!/bin/bash
     
     set -e
