@@ -49,6 +49,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
             console.log(sampleFiles);
         } else if (file1.replace('_R1.fastq.gz', '') === file2.replace('_R2.fastq.gz', '')) {
             sampleFiles.push(file1.replace('_R1.fastq.gz.', ''))
+            fs.rename()
             console.log(sampleFiles);
         } else {
             return res.status(400).send('File pairs do not match.');
