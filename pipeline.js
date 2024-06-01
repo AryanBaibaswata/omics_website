@@ -39,35 +39,34 @@ app.post('/upload', upload.array('files'), (req, res) => {
     // console.log("files uploaded")
     const basedir = path.resolve(__dirname, 'uploads');
     // console.log(basedir);
-    const re = /^.*_R[12]\.fastq\.gz$/;
     const sampleFiles = [];
     for (let i = 0; i < files.length; i += 2) {
         const file1 = files[i].filename;
-        // console.log(file1);
+        console.log(file1);
         const file2 = files[i + 1].filename;
         if (file1.replace('_1.fastq.gz', '') === file2.replace('_2.fastq.gz', '')) {
             sampleFiles.push(file1.replace('_1.fastq.gz', ''));
-            // console.log(sampleFiles);
+            console.log(sampleFiles);
         } else if (file1.replace('_R1.fastq.gz', '') === file2.replace('_R2.fastq.gz', '')) {
             sampleFiles.push(file1.replace('_R1.fastq.gz.', ''))
-            // console.log(sampleFiles);
+            console.log(sampleFiles);
         } else {
             return res.status(400).send('File pairs do not match.');
         }
     }
     // console.log('read files')
     const samplesList = sampleFiles.map(sample => `    "${sample}"`).join(' \\\n');
-    // console.log("samples list: ", samplesList);
+    console.log("samples list: ", samplesList);
     let GENOMEIDX1, GENOMEIDX;
 
     // Set the variables based on the genome type
     if (req.body.genome === "hev") {
         GENOMEIDX1 = 
-        "/home/aryan/omics_website/utils/hev/hev_genome";
-        // "/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome";
+        // "/home/aryan/omics_website/utils/hev/hev_genome";
+        "/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome";
         GENOMEIDX = 
-        "/home/aryan/omics_website/utils/hev/NC_001434-HEV.fa";
-        // "/home/bioinformatics-pc55/projects/omics_website/utils/hev/NC_001434-HEV.fa";
+        // "/home/aryan/omics_website/utils/hev/NC_001434-HEV.fa";
+        "/home/bioinformatics-pc55/projects/omics_website/utils/hev/NC_001434-HEV.fa";
     } else if (req.body.genome === "covid") {
         GENOMEIDX1 = 
             // "/home/aryan/omics_website/utils/covid/sars_cov_2";
@@ -78,7 +77,6 @@ app.post('/upload', upload.array('files'), (req, res) => {
     } else {
         return res.status(400).send('Invalid genome type specified.');
     }
-
     console.log("read till pipeline script content")
     const pipelineScriptContent = `#!/bin/bash
     
@@ -96,11 +94,11 @@ app.post('/upload', upload.array('files'), (req, res) => {
     for sample_name in "\${samples[@]}"; do
         sleep 2
         echo "Step-1.0: FastQC Quality Control Report for \${sample_name}" >> \${progress_file}
-        fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/\${sample_name}" "\${basedir}/\${sample_name}"
+        fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/\${sample_name}_1.fastq.gz" "\${basedir}/\${sample_name}_2.fastq.gz"
         sleep 2
         echo "Step-1.1: Fastp Quality Control for \${sample_name}" >> \${progress_file}
-        fastp -i "\${basedir}/\${sample_name}" -o "\${basedir}/\${sample_name}_P1.fastq" \
-              -I "\${basedir}/\${sample_name}" -O "\${basedir}/\${sample_name}_P2.fastq" \
+        fastp -i "\${basedir}/\${sample_name}_1.fastq.gz" -o "\${basedir}/\${sample_name}_P1.fastq" \
+              -I "\${basedir}/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
               --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2> "\${basedir}/fastp-\${sample_name}.log"
         sleep 2
         echo "Step-2: Read Alignment for \${sample_name}" >> \${progress_file}
@@ -150,7 +148,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
     // Debug logs
     console.log(`Pipeline script written to ${scriptPath}`);
     sampleFiles.forEach(sample => {
-        console.log(`Expecting sample files: ${path.join(basedir, `${sample}`)}, ${path.join(basedir, `${sample}`)}`);
+        console.log(`Expecting sample files: ${path.join(basedir, `${sample}_1.fastq.gz`)}, ${path.join(basedir, `${sample}_2.fastq.gz`)}`);
     });
     
     const progressFile = path.join(basedir, 'progress.txt');
