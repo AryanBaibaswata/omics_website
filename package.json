@@ -5,7 +5,7 @@
   "main": "newserver.js",
   "scripts": {
     "dev": "nodemon newserver.js --ignore multiqc_reports/",
-    "start": "node newserver.js ",
+    "start": "node pipeline.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "pipe": "node pipeline.js"
   },
