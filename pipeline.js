@@ -22,6 +22,27 @@ const storage = multer.diskStorage({
 });
 
 
+const fileMatcher = (files, length) => {
+    for (file in files){
+        var f1 = file;
+        for (fi in files){
+            if(fi != file){
+                var f2 = fi;
+                if(f1.replace('_1.fastq.gz', '') === f2.replace('_2.fastq.gz', '')){
+                    return true;
+                }
+                else if(f1.replace('_R1.fastq.gz', '') === f2.replace('_R2.fastq.gz', '')){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+        }
+    }
+
+};
+
 
 const upload = multer({ storage });
 // console.log("read part till storage")
@@ -36,9 +57,9 @@ app.post('/upload', upload.array('files'), (req, res) => {
     if (files.length % 2 !== 0) {
         return res.status(400).send('Please upload files in pairs.');
     }
-    // console.log("files uploaded")
+    console.log("files uploaded")
     const basedir = path.resolve(__dirname, 'uploads');
-    // console.log(basedir);
+    console.log(basedir);
     const sampleFiles = [];
     for (let i = 0; i < files.length; i += 2) {
         const file1 = files[i].filename;
@@ -55,7 +76,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
             return res.status(400).send('File pairs do not match.');
         }
     }
-    // console.log('read files')
+    console.log('read files')
     const samplesList = sampleFiles.map(sample => `    "${sample}"`).join(' \\\n');
     console.log("samples list: ", samplesList);
     let GENOMEIDX1, GENOMEIDX;
@@ -94,48 +115,52 @@ app.post('/upload', upload.array('files'), (req, res) => {
 
     for sample_name in "\${samples[@]}"; do
         sleep 2
-        echo "Step-1.0: FastQC Quality Control Report for \${sample_name}" >> \${progress_file}
+        echo "Step I: Quality Control and Preprocessing" >> \${progress_file}
+        echo "Step 1.1: FastQC Quality Control Report for \${sample_name}" >> \${progress_file}
         fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/\${sample_name}_1.fastq.gz" "\${basedir}/\${sample_name}_2.fastq.gz"
         sleep 2
-        echo "Step-1.1: Fastp Quality Control for \${sample_name}" >> \${progress_file}
+        echo "Step-1.2: Fastp Quality Control for \${sample_name}" >> \${progress_file}
         fastp -i "\${basedir}/\${sample_name}_1.fastq.gz" -o "\${basedir}/\${sample_name}_P1.fastq" \
               -I "\${basedir}/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
               --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2> "\${basedir}/fastp-\${sample_name}.log"
         sleep 2
-        echo "Step-2: Read Alignment for \${sample_name}" >> \${progress_file}
+        echo "Step 1.3: MultiQC Quality Control for \${sample_name}" >> \${progress_file}
+        multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/"
+        echo "Step II: Read Alignment for \${sample_name}" >> \${progress_file}
+        echo "Step-2.1: Read Alignment for \${sample_name}" >> \${progress_file}
         bowtie2 -p 64 -x "\${GENOMEIDX1}" -1 "\${basedir}/\${sample_name}_P1.fastq" -2 "\${basedir}/\${sample_name}_P2.fastq" -S "\${basedir}/\${sample_name}.sam"
         sleep 2
-        echo "Step-3: Conversion Of Sam To BAM File for \${sample_name}" >> \${progress_file}
+        echo "Step-III: Coverage Analysis for \${sample_name}" >> \${progress_file}
+        echo "Step 3.1 Conversion Of Sam To BAM File for \${sample_name}" >> \${progress_file}
         samtools view -b "\${basedir}/\${sample_name}.sam" -o "\${basedir}/\${sample_name}.bam"
         sleep 2
-        echo "Step-4: Alignment Metrics for \${sample_name}" >> \${progress_file}
-        samtools flagstat "\${basedir}/\${sample_name}.bam" > "\${basedir}/\${sample_name}.flagstat.txt"
+        echo "Step-3.2: Alignment Metrics for \${sample_name}" >> \${progress_file}
+          samtools flagstat "\${basedir}/\${sample_name}.bam" > "\${basedir}/\${sample_name}.flagstat.txt"
         sleep 2
-        echo "Step-5: Conversion of BAM To Sorted BAM for \${sample_name}" >> \${progress_file}
+        echo "Step-3.3: Conversion of BAM To Sorted BAM for \${sample_name}" >> \${progress_file}
         samtools sort "\${basedir}/\${sample_name}.bam" -o "\${basedir}/\${sample_name}.sorted.bam"
+        echo "Step-3.4: Removing duplicate reads from Sorted Bam Files for \${sample_name}" >> \${progress_file}
+        samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam"
         sleep 2
-        echo "Step-6: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file}
+        echo "Step-3.5: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file}
         samtools depth "\${basedir}/\${sample_name}.sorted.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt"
         sleep 2
         input_bam="\${basedir}/coverage_\${sample_name}.txt"
         output_bed="\${basedir}/\${sample_name}.bed"
         sleep 2
-        echo "Step-7: Extracting start end coordinates of missing read segments for \${sample_name}" >> \${progress_file}
+        echo "Step-3.6: Extracting start end coordinates of missing read segments for \${sample_name}" >> \${progress_file}
         python3 "pipelines/convert_bam_to_bed.py" "\${sample_name}" "\${input_bam}" "\${output_bed}"
         sleep 2
-        echo "Step-8: Performing N-masking for \${sample_name}" >> \${progress_file}
+        echo "Step-3.7: Performing N-masking for \${sample_name}" >> \${progress_file}
         bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${output_bed}" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta"
-        sleep 2
-        echo "Step-9: Removing duplicate reads from Sorted Bam Files for \${sample_name}" >> \${progress_file}
-        samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam"
-        sleep 2
-        echo "Step-10: Generation of VCF for \${sample_name}" >> \${progress_file}
+        echo "Step IV: Generation of VCF, VCF Index and Viral Genome for \${sample_name}" >> \${progress_file}
+        echo "Step-4: Generation of VCF for \${sample_name}" >> \${progress_file}
         bcftools mpileup -f "\${GENOMEIDX}" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz"
         sleep 2
-        echo "Step-11: Generation of VCF Index for \${sample_name}" >> \${progress_file}
+        echo "Step-4.1: Generation of VCF Index for \${sample_name}" >> \${progress_file}
         bcftools index "\${basedir}/\${sample_name}.vcf.gz"
         sleep 2
-        echo "Step-12: Generation of viral genome fasta for \${sample_name}" >> \${progress_file}
+        echo "Step-4.2: Generation of viral genome fasta for \${sample_name}" >> \${progress_file}
         cat "\${basedir}/\${sample_name}_masked.fasta" | bcftools consensus "\${basedir}/\${sample_name}.vcf.gz" > "\${basedir}/\${sample_name}_genome.fa"
         sleep 2
         echo "complete!" >> \${progress_file}
