@@ -29,13 +29,13 @@ const fileMatcher = (files, length) => {
             if(fi != file){
                 var f2 = fi;
                 if(f1.replace('_1.fastq.gz', '') === f2.replace('_2.fastq.gz', '')){
-                    return true;
+                    return 2;
                 }
                 else if(f1.replace('_R1.fastq.gz', '') === f2.replace('_R2.fastq.gz', '')){
-                    return true;
+                    return 1;
                 }
                 else{
-                    return false;
+                    return 0;
                 }
             }
         }
@@ -62,6 +62,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
     console.log(basedir);
     const sampleFiles = [];
     for (let i = 0; i < files.length; i += 2) {
+        const filetype = fileMatcher(files, file.length);
         const file1 = files[i].filename;
         console.log(file1);
         const file2 = files[i + 1].filename;
@@ -124,8 +125,6 @@ app.post('/upload', upload.array('files'), (req, res) => {
               -I "\${basedir}/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
               --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2> "\${basedir}/fastp-\${sample_name}.log"
         sleep 2
-        echo "Step 1.3: MultiQC Quality Control for \${sample_name}" >> \${progress_file}
-        multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/"
         echo "Step II: Read Alignment for \${sample_name}" >> \${progress_file}
         echo "Step-2.1: Read Alignment for \${sample_name}" >> \${progress_file}
         bowtie2 -p 64 -x "\${GENOMEIDX1}" -1 "\${basedir}/\${sample_name}_P1.fastq" -2 "\${basedir}/\${sample_name}_P2.fastq" -S "\${basedir}/\${sample_name}.sam"
@@ -165,6 +164,8 @@ app.post('/upload', upload.array('files'), (req, res) => {
         sleep 2
         echo "complete!" >> \${progress_file}
     done
+    echo "Step 1.3: MultiQC Quality Control for \${sample_name}" >> \${progress_file}
+        multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/"
     `;
     
     const scriptPath = path.join(basedir, 'pipeline.sh');

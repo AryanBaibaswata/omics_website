@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viral Genome Assembly</title>
+    <!-- <script
+  type="module"
+  src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/accordion.min.js"></script> -->
     <style>
         .step {
             padding: 10px;
@@ -21,6 +24,10 @@
             50% { background-color: #ffff99; }
             100% { background-color: #fff; }
         }
+      /* cds-dropdown:not(:defined),
+      cds-dropdown-item:not(:defined) {
+        visibility: hidden;
+      } */
     </style>
 </head>
 <body>
@@ -71,6 +78,13 @@
         <div class="step" id="step-11">Step-10: Generation of VCF</div>
         <div class="step" id="step-12">Step-11: Generation of VCF Index</div>
         <div class="step" id="step-13">Step-12: Generation of Viral Genome Fasta</div>
+    </div>
+    <div id="pipeline-steps">
+        <div class="step-major">
+            <b>Step 1:</b>
+            Quality Control and Preprocessing
+            <div class = "step hidden"></div>
+        </div>
     </div>
 
     <h2>Progress Log:</h2>
