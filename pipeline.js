@@ -3,10 +3,14 @@ const multer = require('multer');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const session = require('express-session');
+const redis = require("connect-redis")(session);
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const handlebars = require('express-handlebars');
 // Set up multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -22,28 +26,23 @@ const storage = multer.diskStorage({
 });
 
 
-const fileMatcher = (files, length) => {
-    for (file in files){
-        var f1 = file;
-        for (fi in files){
-            if(fi != file){
-                var f2 = fi;
-                if(f1.replace('_1.fastq.gz', '') === f2.replace('_2.fastq.gz', '')){
-                    return 2;
-                }
-                else if(f1.replace('_R1.fastq.gz', '') === f2.replace('_R2.fastq.gz', '')){
-                    return 1;
-                }
-                else{
-                    return 0;
-                }
-            }
-        }
-    }
-
-};
+// app.use(session({
+//     store: new RedisStore({
+//       url: config.redisStore.url
+//     }),
+//     secret: config.redisStore.secret,
+//     resave: false,
+//     saveUninitialized: false
+//   }))
+//   app.use(passport.initialize())
+//   app.use(passport.session())
 
 
+app.engine('.hbs', handlebars.engine({
+    defaultLayout: 'main',
+    extname: '.hbs',
+    layoutsDir: path.join(__dirname, 'views/layouts')
+}));
 const upload = multer({ storage });
 // console.log("read part till storage")
 
@@ -60,9 +59,10 @@ app.post('/upload', upload.array('files'), (req, res) => {
     console.log("files uploaded")
     const basedir = path.resolve(__dirname, 'uploads');
     console.log(basedir);
+
     const sampleFiles = [];
     for (let i = 0; i < files.length; i += 2) {
-        const filetype = fileMatcher(files, file.length);
+        // const filetype = fileMatcher(files, file.length);
         const file1 = files[i].filename;
         console.log(file1);
         const file2 = files[i + 1].filename;
@@ -77,11 +77,13 @@ app.post('/upload', upload.array('files'), (req, res) => {
             return res.status(400).send('File pairs do not match.');
         }
     }
+    console.log(sampleFiles)
     console.log('read files')
     const samplesList = sampleFiles.map(sample => `    "${sample}"`).join(' \\\n');
     console.log("samples list: ", samplesList);
     let GENOMEIDX1, GENOMEIDX;
-
+    let genomeidx_arr, genomeidx1_arr;
+    genomeidx1_arr=["/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome", "/home/aryan/omics_website/utils/hev/hev_genome"]
     // Set the variables based on the genome type
     if (req.body.genome === "hev") {
         GENOMEIDX1 = 
@@ -142,7 +144,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
         samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam"
         sleep 2
         echo "Step-3.5: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file}
-        samtools depth "\${basedir}/\${sample_name}.sorted.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt"
+        samtools depth "\${basedir}/\${sample_name}.duprem.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt"
         sleep 2
         input_bam="\${basedir}/coverage_\${sample_name}.txt"
         output_bed="\${basedir}/\${sample_name}.bed"
