@@ -2,8 +2,7 @@ const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema({
     id: {
-        type: String,
-        required: true,
+        type: mongoose.Schema.Types.ObjectId
     },
     email: {
         type: String,
@@ -15,12 +14,18 @@ const userSchema = new mongoose.Schema({
     },
     mobileNo: {
         type: String,
-        required: true
+        // required: true
     },
-    password: {
+    pwd: {
         type: String,
         required: true
     },
+    reports: {
+        type: Object
+    }, 
+    pipes:  {
+        type:Object
+    }
    });
 
 
