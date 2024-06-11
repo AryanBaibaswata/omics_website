@@ -38,11 +38,6 @@ const storage = multer.diskStorage({
 //   app.use(passport.session())
 
 
-app.engine('.hbs', handlebars.engine({
-    defaultLayout: 'main',
-    extname: '.hbs',
-    layoutsDir: path.join(__dirname, 'views/layouts')
-}));
 const upload = multer({ storage });
 // console.log("read part till storage")
 
