@@ -8,10 +8,10 @@ GENOMEIDX1="/mnt/c/Users/asus/genome_assembly/genome_sars_cov2/NC_045512.2.fasta
 
 for sample_name in "${samples[@]}"; do
     echo "Step-1.0: FastQC Quality Control Report for ${sample_name}"
-    fastqc -o "${basedir}/fastqc_output/" "${basedir}/${sample_name}_1.fastq.gz" "${basedir}/${sample_name}_2.fastq.gz"
+    fastqc -o "${basedir}/fastqc_output/" "${basedir}/${sample_name}_R1.fastq.gz" "${basedir}/${sample_name}_R2.fastq.gz"
 
     echo "Step-1.1: Fastp Quality Control for ${sample_name}"
-    fastp -i "${basedir}/${sample_name}_1.fastq.gz" -o "${basedir}/${sample_name}_P1.fastq"           -I "${basedir}/${sample_name}_2.fastq.gz" -O "${basedir}/${sample_name}_P2.fastq"           --thread 4 -h "${basedir}/fastp-${sample_name}.html" 2> "${basedir}/fastp-${sample_name}.log"
+    fastp -i "${basedir}/${sample_name}_R1.fastq.gz" -o "${basedir}/${sample_name}_P1.fastq"           -I "${basedir}/${sample_name}_R2.fastq.gz" -O "${basedir}/${sample_name}_P2.fastq"           --thread 4 -h "${basedir}/fastp-${sample_name}.html" 2> "${basedir}/fastp-${sample_name}.log"
 
     echo "Step-2: Read Alignment for ${sample_name}"
     bowtie2 -p 64 -x "${GENOMEIDX1}" -1 "${basedir}/${sample_name}_P1.fastq" -2 "${basedir}/${sample_name}_P2.fastq" -S "${basedir}/${sample_name}.sam"
@@ -25,6 +25,9 @@ for sample_name in "${samples[@]}"; do
     echo "Step-5: Conversion of BAM To Sorted BAM for ${sample_name}"
     samtools sort "${basedir}/${sample_name}.bam" -o "${basedir}/${sample_name}.sorted.bam"
 
+    echo "Step-9: Removing duplicate reads from Sorted Bam Files for ${sample_name}"
+    samtools rmdup -S "${basedir}/${sample_name}.sorted.bam" "${basedir}/${sample_name}.duprem.bam"
+
     echo "Step-6: Deriving Low Coverage Bed File for ${sample_name}"
     samtools depth "${basedir}/${sample_name}.sorted.bam" | awk '$3 < 5 {print $1"	"$2"	"$3}' > "${basedir}/coverage_${sample_name}.txt"
 
@@ -34,8 +37,7 @@ for sample_name in "${samples[@]}"; do
     echo "Step-8: Performing N-masking for ${sample_name}"
     bedtools maskfasta -fi "${GENOMEIDX1}" -bed "${basedir}/output_${sample_name}.bed" -mc N -fo "${basedir}/${sample_name}_masked.fasta"
 
-    echo "Step-9: Removing duplicate reads from Sorted Bam Files for ${sample_name}"
-    samtools rmdup -S "${basedir}/${sample_name}.sorted.bam" "${basedir}/${sample_name}.duprem.bam"
+ 
 
     echo "Step-10: Generation of VCF for ${sample_name}"
     bcftools mpileup -f "${GENOMEIDX1}" "${basedir}/${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "${basedir}/${sample_name}.vcf.gz"
