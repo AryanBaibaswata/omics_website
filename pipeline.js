@@ -3,14 +3,8 @@ const multer = require('multer');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const session = require('express-session');
-const redis = require("connect-redis")(session);
-const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
-const handlebars = require('express-handlebars');
 // Set up multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -26,16 +20,6 @@ const storage = multer.diskStorage({
 });
 
 
-// app.use(session({
-//     store: new RedisStore({
-//       url: config.redisStore.url
-//     }),
-//     secret: config.redisStore.secret,
-//     resave: false,
-//     saveUninitialized: false
-//   }))
-//   app.use(passport.initialize())
-//   app.use(passport.session())
 
 
 const upload = multer({ storage });
