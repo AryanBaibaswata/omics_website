@@ -18,6 +18,12 @@ form {
   padding: 1rem;
 }
 
+.container {
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
 .navbar{
     display: flex;
     justify-content: space-between;
@@ -38,6 +44,9 @@ form {
   display: flex;
 }
 
+.bottom{
+  display: inline-block;
+}
 .topnav {
     background-color: #333;
     overflow: hidden;
@@ -119,7 +128,43 @@ form {
   .dropdown:hover .dropdown-content {
     display: block;
   }
+
+#wrapper{
+  width: 98%;
+  margin: 10px;
+  padding: 10px;
+  border: #000 1px solid;
+  display: flex;
+}
   
+.pipeline-step {
+    padding: 10px;
+    border: 1px solid #000;
+    margin: 5px;
+    display: inline-block;
+    border-radius: 5px;
+    width: calc(100% - 20px); /* Full width with margin */
+    box-sizing: border-box;
+}
+
+#pipeline-container {
+  float:left;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+
+
+.arrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
   /* When the screen is less than 600 pixels wide, hide all links, except for the first one ("Home"). Show the link that contains should open and close the topnav (.icon) */
   @media screen and (max-width: 600px) {
     .topnav a:not(:first-child), .dropdown .dropbtn {

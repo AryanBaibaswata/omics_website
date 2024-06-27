@@ -92,6 +92,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
         GENOMEIDX1 =
             "/home/aryan/projects/omics_website/utils/hev/hev_genome";
             // "/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome";
+
         GENOMEIDX =
             "/home/aryan/projects/omics_website/utils/hev/NC_001434-HEV.fa";
             // "/home/bioinformatics-pc55/projects/omics_website/utils/hev/NC_001434-HEV.fa";
@@ -125,7 +126,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
         echo "Step 1.1: FastQC Quality Control Report for \${sample_name}" >> \${progress_file}
         fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/\${sample_name}_1.fastq.gz" "\${basedir}/\${sample_name}_2.fastq.gz"
         sleep 2
-        echo "Step-1.2: Fastp Quality Control for \${sample_name}" >> \${progress_file}
+        echo "Step-1.2: Trimmed Quality Control for \${sample_name}" >> \${progress_file}
         fastp -i "\${basedir}/\${sample_name}_1.fastq.gz" -o "\${basedir}/\${sample_name}_P1.fastq" \
               -I "\${basedir}/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
               --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2> "\${basedir}/fastp-\${sample_name}.log"
