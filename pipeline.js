@@ -3,14 +3,14 @@ const multer = require('multer');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const session = require('express-session');
-const redis = require("connect-redis")(session);
-const bcrypt = require('bcrypt');
+// const passport = require('passport');
+// const LocalStrategy = require('passport-local').Strategy;
+// const session = require('express-session');
+// const redis = require("connect-redis")(session);
+// const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
-const handlebars = require('express-handlebars');
+// const handlebars = require('express-handlebars');
 // Set up multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -65,8 +65,16 @@ app.post('/upload', upload.array('files'), (req, res) => {
             sampleFiles.push(file1.replace('_1.fastq.gz', ''));
             console.log(sampleFiles);
         } else if (file1.replace('_R1.fastq.gz', '') === file2.replace('_R2.fastq.gz', '')) {
-            sampleFiles.push(file1.replace('_R1.fastq.gz.', ''))
-            fs.rename()
+            const sampleName = file1.replace('_R1.fastq.gz', '');
+            sampleFiles.push(sampleName)
+            const oldPath1 = path.join(basedir, file1);
+            const oldPath2 = path.join(basedir, file2);
+            const newPath1 = path.join(basedir, `${sampleName}_1.fastq.gz`);
+            const newPath2 = path.join(basedir, `${sampleName}_2.fastq.gz`);
+
+            fs.renameSync(oldPath1, newPath1);
+            fs.renameSync(oldPath2, newPath2);
+
             console.log(sampleFiles);
         } else {
             return res.status(400).send('File pairs do not match.');
@@ -78,22 +86,22 @@ app.post('/upload', upload.array('files'), (req, res) => {
     console.log("samples list: ", samplesList);
     let GENOMEIDX1, GENOMEIDX;
     let genomeidx_arr, genomeidx1_arr;
-    genomeidx1_arr=["/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome", "/home/aryan/omics_website/utils/hev/hev_genome"]
+    genomeidx1_arr = ["/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome", "/home/aryan/omics_website/utils/hev/hev_genome"]
     // Set the variables based on the genome type
     if (req.body.genome === "hev") {
-        GENOMEIDX1 = 
-        // "/home/aryan/omics_website/utils/hev/hev_genome";
-        "/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome";
-        GENOMEIDX = 
-        // "/home/aryan/omics_website/utils/hev/NC_001434-HEV.fa";
-        "/home/bioinformatics-pc55/projects/omics_website/utils/hev/NC_001434-HEV.fa";
+        GENOMEIDX1 =
+            "/home/aryan/projects/omics_website/utils/hev/hev_genome";
+            // "/home/bioinformatics-pc55/projects/omics_website/utils/hev/hev_genome";
+        GENOMEIDX =
+            "/home/aryan/projects/omics_website/utils/hev/NC_001434-HEV.fa";
+            // "/home/bioinformatics-pc55/projects/omics_website/utils/hev/NC_001434-HEV.fa";
     } else if (req.body.genome === "covid") {
-        GENOMEIDX1 = 
-            // "/home/aryan/omics_website/utils/covid/sars_cov_2";
-            "/home/bioinformatics-pc55/projects/omics_website/utils/covid/sars_cov_2";
-        GENOMEIDX = 
-            // "/home/aryan/omics_website/utils/covid/NC_045512.2.fasta";
-            "/home/bioinformatics-pc55/projects/omics_website/utils/covid/NC_045512.2.fasta";
+        GENOMEIDX1 =
+            "/home/aryan/omics_website/utils/covid/sars_cov_2";
+            // "/home/bioinformatics-pc55/projects/omics_website/utils/covid/sars_cov_2";
+        GENOMEIDX =
+            "/home/aryan/omics_website/utils/covid/NC_045512.2.fasta";
+            // "/home/bioinformatics-pc55/projects/omics_website/utils/covid/NC_045512.2.fasta";
     } else {
         return res.status(400).send('Invalid genome type specified.');
     }
@@ -161,40 +169,40 @@ app.post('/upload', upload.array('files'), (req, res) => {
         sleep 2
         echo "complete!" >> \${progress_file}
     done
-    echo "Step 1.3: MultiQC Quality Control for \${sample_name}" >> \${progress_file}
+    echo "Step 1.3: MultiQC Quality Control" >> \${progress_file}
         multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/"
     `;
-    
+
     const scriptPath = path.join(basedir, 'pipeline.sh');
     fs.writeFileSync(scriptPath, pipelineScriptContent);
     fs.chmodSync(scriptPath, '755');
-    
+
     // Debug logs
     console.log(`Pipeline script written to ${scriptPath}`);
     sampleFiles.forEach(sample => {
         console.log(`Expecting sample files: ${path.join(basedir, `${sample}_1.fastq.gz`)}, ${path.join(basedir, `${sample}_2.fastq.gz`)}`);
     });
-    
+
     const progressFile = path.join(basedir, 'progress.txt');
     fs.writeFileSync(progressFile, ''); // Clear previous progress
-    
+
     const child = exec(`bash ${scriptPath}`, { shell: '/bin/bash' });
-    
+
     child.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
         fs.appendFileSync(progressFile, data);
     });
-    
+
     child.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`);
         fs.appendFileSync(progressFile, data);
     });
-    
+
     child.on('close', (code) => {
         console.log(`child process exited with code ${code}`);
         fs.appendFileSync(progressFile, `Process completed with code ${code}\n`);
     });
-    
+
     res.send('Pipeline execution started.');
 });
 

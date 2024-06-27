@@ -4,7 +4,7 @@
   "description": "",
   "main": "newserver.js",
   "scripts": {
-    "dev": "nodemon newserver.js --ignore multiqc_reports/",
+    "dev": "nodemon pipeline.js --ignore uploads/ --ignore fastp.json",
     "start": "node pipeline.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "pipe": "node pipeline.js"
