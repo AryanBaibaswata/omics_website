@@ -3,20 +3,25 @@ const multer = require('multer');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-// const passport = require('passport');
-// const LocalStrategy = require('passport-local').Strategy;
-// const session = require('express-session');
-// const redis = require("connect-redis")(session);
-// const bcrypt = require('bcrypt');
+// // const passport = require('passport');
+// // const LocalStrategy = require('passport-local').Strategy;
+// // const session = require('express-session');
+// // const redis = require("connect-redis")(session);
+// // const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
 // const handlebars = require('express-handlebars');
+// const handlebars = require('express-handlebars');
 // Set up multer for file uploads
+
+const date = new Date().toISOString().replace(/:/g, '-');
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadPath = 'uploads/';
+        const uploadPath = `uploads/${date}/files`;
         if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
+            fs.mkdirSync(`uploads/${date}/fastqc_output`, { recursive: true });
         }
         cb(null, uploadPath);
     },
@@ -38,6 +43,11 @@ const storage = multer.diskStorage({
 //   app.use(passport.session())
 
 
+// app.engine('.hbs', handlebars.engine({
+//     defaultLayout: 'main',
+//     extname: '.hbs',
+//     layoutsDir: path.join(__dirname, 'views/layouts')
+// }));
 const upload = multer({ storage });
 // console.log("read part till storage")
 
@@ -54,7 +64,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
     console.log("files uploaded")
     const basedir = path.resolve(__dirname, 'uploads');
     console.log(basedir);
-
+    
     const sampleFiles = [];
     for (let i = 0; i < files.length; i += 2) {
         // const filetype = fileMatcher(files, file.length);
