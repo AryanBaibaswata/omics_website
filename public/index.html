@@ -55,87 +55,79 @@
             <br>
             <input type="file" name="refgenome" id="refgenome" accept=".fa, .fasta" multiple required>
             <br><br>
-            <!-- <br><br>
-            <select name="genome" id="genome">
-                <option value="hev">Hepatitis E</option>
-                <option value="covid">Covid</option>
-            </select> -->
             <button type="submit">Upload and Process</button>
         </form>
     </div>
 
     <h2>Pipeline Progress:</h2>
     <div id="wrapper">
-      <div id="pipeline-container">
-        <div class="pipeline-step" id="step-1">Step-1.0: FastQC Quality Control Report</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-2">Step-1.1: Fastp Quality Control</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-3">Step-2: Read Alignment</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-4">Step-3: Conversion Of Sam To BAM File</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-5">Step-4: Alignment Metrics</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-6">Step-5: Conversion of BAM To Sorted BAM</div>
+        <div id="pipeline-container">
+            <div class="pipeline-step" id="step-1">Step-1.0: FastQC Quality Control Report</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-2">Step-1.1: Fastp Quality Control</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-3">Step-2: Read Alignment</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-4">Step-3: Conversion Of Sam To BAM File</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-5">Step-4: Alignment Metrics</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-6">Step-5: Conversion of BAM To Sorted BAM</div>
         </div>
         <div id="pipeline-container">
-        <div class="pipeline-step" id="step-7">Step-6: Deriving Low Coverage Bed File</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-
-        <div class="pipeline-step" id="step-8">Step-7: Extracting Start End Coordinates</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-9">Step-8: Performing N-masking</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-10">Step-9: Removing Duplicate Reads</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-11">Step-10: Generation of VCF</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-12">Step-11: Generation of VCF Index</div>
-        <svg class="arrow" width="50" height="50">
-            <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
-            <polygon points="20,45 25,55 30,45" style="fill:#000;" />
-        </svg>
-        <div class="pipeline-step" id="step-13">Step-12: Generation of Viral Genome Fasta</div>
+            <div class="pipeline-step" id="step-7">Step-6: Deriving Low Coverage Bed File</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-8">Step-7: Extracting Start End Coordinates</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-9">Step-8: Performing N-masking</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-10">Step-9: Removing Duplicate Reads</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-11">Step-10: Generation of VCF</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-12">Step-11: Generation of VCF Index</div>
+            <svg class="arrow" width="50" height="50">
+                <line x1="25" y1="0" x2="25" y2="50" style="stroke:#000;stroke-width:2" />
+                <polygon points="20,45 25,55 30,45" style="fill:#000;" />
+            </svg>
+            <div class="pipeline-step" id="step-13">Step-12: Generation of Viral Genome Fasta</div>
         </div>
-    
-        <div class="bottom">
-            <h2>Progress Log:</h2>
-            <pre id="progress"></pre>
-            <a href="/download-progress" download="progress_log.txt">Download Progress Log</a>
-        </div>
-        
-</div>
+    </div>
+    <div class="bottom">
+        <h2>Progress Log:</h2>
+        <pre id="progress"></pre>
+        <a href="/download-progress" download="progress_log.txt">Download Progress Log</a>
+    </div>
     <script>
         const form = document.getElementById('uploadForm');
         const progress = document.getElementById('progress');
@@ -152,31 +144,40 @@
             "Removing Duplicate Reads": "step-10",
             "Generation of VCF": "step-11",
             "Generation of VCF Index": "step-12",
-            "Generation of Viral Genome Fasta": "step-13",
+            "Generation of Viral Genome Fasta": "step-13"
         };
-        const updateProgress = (message) => {
-            progress.textContent += message + '\n';
-            for (const [step, id] of Object.entries(steps)) {
-                const stepElement = document.getElementById(id);
-                if (message.includes(step)) {
-                    stepElement.classList.add('blinking');
-                } else {
-                    stepElement.classList.remove('blinking');
-                }
-            }
-        };
-        form.addEventListener('submit', (e) => {
+
+        form.addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(form);
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            }).then(response => response.json())
-            .then(data => {
-                updateProgress(data.message);
-            }).catch(error => {
-                console.error('Error:', error);
-            });
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', form.action, true);
+            
+            xhr.upload.onprogress = function (e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progress.textContent = `Upload Progress: ${percentComplete.toFixed(2)}%`;
+                }
+            };
+            
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    response.steps.forEach(step => {
+                        const stepElement = document.getElementById(steps[step]);
+                        if (stepElement) {
+                            stepElement.classList.add('blinking');
+                            setTimeout(() => {
+                                stepElement.classList.remove('blinking');
+                            }, 1000);
+                        }
+                    });
+                } else {
+                    progress.textContent = `Upload failed: ${xhr.statusText}`;
+                }
+            };
+            
+            xhr.send(formData);
         });
     </script>
 </body>

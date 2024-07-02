@@ -135,6 +135,7 @@ form {
   padding: 10px;
   border: #000 1px solid;
   display: flex;
+  align-items: center;
 }
   
 .pipeline-step {
@@ -148,7 +149,7 @@ form {
 }
 
 #pipeline-container {
-  float:left;
+  margin-left: auto; margin-right: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
