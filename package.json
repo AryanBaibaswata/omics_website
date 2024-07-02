@@ -22,6 +22,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-handlebars": "^7.1.2",
+    "express-zip": "^3.0.0",
     "fast-components": "^1.0.1",
     "gridfs-stream": "^1.1.1",
     "handlebars": "^4.7.8",
