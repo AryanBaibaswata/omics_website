@@ -3,6 +3,7 @@ const multer = require('multer');
 const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const zlib = require('node:zlib')
 const json = require('json');
 // // const passport = require('passport');
 // // const LocalStrategy = require('passport-local').Strategy;
@@ -15,7 +16,31 @@ const PORT = process.env.PORT || 3000;
 // const handlebars = require('express-handlebars');
 // Set up multer for file uploads
 
-const date = new Date().toISOString().replace(/:/g, '-');
+const currentDate = new Date();
+
+// Step 2: Convert to IST
+// IST is 5 hours and 30 minutes ahead of UTC
+const offsetIST = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+const dateIST = new Date(currentDate.getTime() + offsetIST);
+
+// Step 3: Format the date and time using Intl.DateTimeFormat
+const options = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false, // Use 24-hour time
+    timeZone: 'Asia/Kolkata'
+};
+
+const formatter = new Intl.DateTimeFormat('en-GB', options);
+const formattedDate = formatter.format(dateIST);
+
+// Step 4: Replace slashes and colons with hyphens
+const formattedIST = formattedDate.replace(/\/|:|,/g, '-').replace(' ', 'T');
+const date = formattedIST
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -62,24 +87,52 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/upload', upload, (req, res) => {
     const files = req.files['files'];
     const genomeFiles = req.files['refgenome'];
-
     if (!genomeFiles || genomeFiles.length === 0) {
-        return res.status(400).send('Please upload a .fasta or .fa file.');
+      return res.status(400).send('Please upload a .fasta or .fa file.');
     }
-
     const genomeFile = genomeFiles[0];
-    const genomeFilePath = path.join(`uploads/${date}/files`, genomeFile.filename);
+    let genomeFilePath = path.join(`uploads/${date}/files`, genomeFile.filename);
+    
+    files.forEach(element => {
+        if (element.filename.contains(".fq")) {
+            const newFilename = element.filename.replace(".fq", ".fastq")
+        }
+    });
+
+    // Replace spaces with underscores in genomeFile.filename
+    if (genomeFile.filename.includes(' ')) {
+      const newFilename = genomeFile.filename.replace(/\s+/g, "_");
+      const newFilePath = path.join(`uploads/${date}/files`, newFilename);
+      fs.renameSync(genomeFilePath, newFilePath);
+      genomeFilePath = newFilePath;
+      genomeFile.filename = newFilename;
+    }
+  
+    if (genomeFile.filename.endsWith('.fas')) {
+      const newFilename = genomeFile.filename.slice(0, -4) + '.fasta';
+      const newFilePath = path.join(`uploads/${date}/files`, newFilename);
+      fs.renameSync(genomeFilePath, newFilePath);
+      genomeFilePath = newFilePath;
+      genomeFile.filename = newFilename;
+    }
+  
     console.log(genomeFilePath);
     if (files.length % 2 !== 0) {
-        return res.status(400).send('Please upload files in pairs.');
+      return res.status(400).send('Please upload files in pairs.');
     }
+  
     const genomeFilename = path.basename(genomeFile.filename, path.extname(genomeFile.filename));
-    console.log(genomeFilename)
-    fs.mkdirSync(`uploads/${date}/${genomeFilename}`,)
-    const indexBasePath = path.join(`uploads/${date}/${genomeFilename}`, path.basename(genomeFile.filename, path.extname(genomeFile.filename)));
-    console.log("indexbasepath:", indexBasePath)
+    console.log(genomeFilename);
+  
+    // Replace spaces with underscores in the directory name
+    const genomeDirName = genomeFilename.replace(/\s+/g, "_");
+    fs.mkdirSync(`uploads/${date}/${genomeDirName}`);
+  
+    // Replace spaces with underscores in indexBasePath
+    const indexBasePath = path.join(`uploads/${date}/${genomeDirName}`, genomeDirName);
+    console.log("indexbasepath:", indexBasePath);
+  
     const bowtieBuildCmd = `bowtie2-build ${genomeFilePath} ${indexBasePath}`;
-
     exec(bowtieBuildCmd, (error, stdout, stderr) => {
         console.log("began execing")
         if (error) {
@@ -150,8 +203,8 @@ app.post('/upload', upload, (req, res) => {
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-1.2: Trimmed Quality Control for \${sample_name}" >> \${progress_file}
             fastp -i "\${basedir}/files/\${sample_name}_1.fastq.gz" -o "\${basedir}/\${sample_name}_P1.fastq" \
-                  -I "\${basedir}/files/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
-                  --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2> "\${basedir}/fastp-\${sample_name}.log"
+              -I "\${basedir}/files/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
+              --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2> "\${basedir}/fastp-\${sample_name}.log"
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step II: Read Alignment for \${sample_name}" >> \${progress_file}
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-2.1: Read Alignment for \${sample_name}" >> \${progress_file}
@@ -192,8 +245,8 @@ app.post('/upload', upload, (req, res) => {
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - complete!" >> \${progress_file}
         done
-        echo \$(date '+%Y-%m-%d %H:%M:%S') - Step 1.3: MultiQC Quality Control" >> \${progress_file}
-            multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/"
+        echo "\$(date '+%Y-%m-%d %H:%M:%S') - Step 1.3: MultiQC Quality Control" >> \${progress_file}
+        multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/"
         `;
 
         const scriptPath = path.join(basedir, 'pipeline.sh');
