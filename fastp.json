@@ -1,7 +1,5 @@
 {
 	"summary": {
-		"fastp_version": "0.23.4",
-		"sequencing": "paired end (150 cycles + 150 cycles)",
 		"before_filtering": {
 			"total_reads":3887334,
 			"total_bases":583100100,
