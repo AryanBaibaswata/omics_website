@@ -5,6 +5,9 @@ const path = require('path');
 const fs = require('fs');
 const zlib = require('node:zlib')
 const json = require('json');
+const util = require('util');
+const execPromise = util.promisify(exec);
+const renamePromise = util.promisify(fs.rename);
 // // const passport = require('passport');
 // // const LocalStrategy = require('passport-local').Strategy;
 // // const session = require('express-session');
@@ -20,8 +23,8 @@ const currentDate = new Date();
 
 // Step 2: Convert to IST
 // IST is 5 hours and 30 minutes ahead of UTC
-const offsetIST = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-const dateIST = new Date(currentDate.getTime() + offsetIST);
+ // 5.5 hours in milliseconds
+const dateIST = new Date(currentDate.getTime());
 
 // Step 3: Format the date and time using Intl.DateTimeFormat
 const options = {
@@ -102,12 +105,15 @@ app.post('/upload', upload, async (req, res) => {
                 await renamePromise(filePath, newFilePath);
                 await execPromise(`gzip ${newFilePath}`);
                 file.filename = newFilename + '.gz';
+                console.log("renaming fq");
             } else if (file.filename.endsWith('.fastq')) {
                 // Just gzip
                 await execPromise(`gzip ${filePath}`);
                 file.filename += '.gz';
+                console.log('renaming .fastq');
             } else if (file.filename.endsWith('.fq.gz')) {
                 // Gunzip, rename to .fastq, then gzip again
+                console.log("renaming .fq.gz")
                 await execPromise(`gunzip ${filePath}`);
                 let unzippedPath = filePath.slice(0, -3);
                 let newFilename = file.filename.slice(0, -6) + '.fastq';
@@ -116,12 +122,13 @@ app.post('/upload', upload, async (req, res) => {
                 await execPromise(`gzip ${newFilePath}`);
                 file.filename = newFilename + '.gz';
             }
-        }));
+        }))
     } catch (err) { 
-        console.error('Error during file preprocessing:', error);
+        console.error('Error during file preprocessing:', err);
         return res.status(500).send('Error during file preprocessing.');
-    }}
-    );
+    }
+
+
 
     const genomeFile = genomeFiles[0];
     let genomeFilePath = path.join(`uploads/${date}/files`, genomeFile.filename);
@@ -163,7 +170,7 @@ app.post('/upload', upload, async (req, res) => {
   
     const bowtieBuildCmd = `bowtie2-build ${genomeFilePath} ${indexBasePath}`;
     exec(bowtieBuildCmd, (error, stdout, stderr) => {
-        console.log("began execing")
+        console.log("began building")
         if (error) {
             console.error(`Error building Bowtie index: ${error}`);
             return res.status(500).send('Error building Bowtie index.');
@@ -291,7 +298,7 @@ app.post('/upload', upload, async (req, res) => {
         const progressFile = path.join('uploads', 'progress.txt');
         fs.writeFileSync(progressFile, ''); // Clear previous progress
 
-        const child = exec(`stdbuf -oL -eL bash ${scriptPath}`, { shell: '/bin/bash' });
+        const child = exec(`bash ${scriptPath}`, { shell: '/bin/bash' });
         child.stdout.pipe(process.stdout);
         child.stderr.pipe(process.stderr);
 
@@ -301,7 +308,7 @@ app.post('/upload', upload, async (req, res) => {
         });
 
         child.stderr.on('data', (data) => {
-            console.error(`stderr: ${data}`);
+            console.log(`stderr: ${data}`);
             fs.appendFileSync(progressFile, data);
         });
 

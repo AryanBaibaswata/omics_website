@@ -50,7 +50,7 @@
         <h1>Upload FASTQ Files</h1>
         <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
             <label for="files">Upload genomes to be sequenced</label><br>
-            <input type="file" name="files" id="files" accept=".fastq.gz" multiple required><br><br>
+            <input type="file" name="files" id="files" accept=".fastq.gz, .fq.gz, .fq, .fastq" multiple required><br><br>
             <label for="refgenome">Upload reference genome</label>
             <br>
             <input type="file" name="refgenome" id="refgenome" accept=".fa, .fasta, .fas" required>
