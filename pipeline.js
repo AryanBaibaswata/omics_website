@@ -84,20 +84,49 @@ const upload = multer({ storage }).fields([
 app.use(express.static(path.join(__dirname, 'public')));
 // console.log("read till middleware")
 // Route to handle file uploads and trigger the pipeline
-app.post('/upload', upload, (req, res) => {
+app.post('/upload', upload, async (req, res) => {
     const files = req.files['files'];
     const genomeFiles = req.files['refgenome'];
     if (!genomeFiles || genomeFiles.length === 0) {
       return res.status(400).send('Please upload a .fasta or .fa file.');
     }
+    try {
+        // Add this new preprocessing step
+        await Promise.all(files.map(async (file) => {
+            let filePath = path.join(`uploads/${date}/files`, file.filename);
+            
+            if (file.filename.endsWith('.fq')) {
+                // Rename .fq to .fastq and gzip
+                let newFilename = file.filename.slice(0, -3) + '.fastq';
+                let newFilePath = path.join(`uploads/${date}/files`, newFilename);
+                await renamePromise(filePath, newFilePath);
+                await execPromise(`gzip ${newFilePath}`);
+                file.filename = newFilename + '.gz';
+            } else if (file.filename.endsWith('.fastq')) {
+                // Just gzip
+                await execPromise(`gzip ${filePath}`);
+                file.filename += '.gz';
+            } else if (file.filename.endsWith('.fq.gz')) {
+                // Gunzip, rename to .fastq, then gzip again
+                await execPromise(`gunzip ${filePath}`);
+                let unzippedPath = filePath.slice(0, -3);
+                let newFilename = file.filename.slice(0, -6) + '.fastq';
+                let newFilePath = path.join(`uploads/${date}/files`, newFilename);
+                await renamePromise(unzippedPath, newFilePath);
+                await execPromise(`gzip ${newFilePath}`);
+                file.filename = newFilename + '.gz';
+            }
+        }));
+    } catch (err) { 
+        console.error('Error during file preprocessing:', error);
+        return res.status(500).send('Error during file preprocessing.');
+    }}
+    );
+
     const genomeFile = genomeFiles[0];
     let genomeFilePath = path.join(`uploads/${date}/files`, genomeFile.filename);
+    //testing for fq and fq.gz files 
     
-    files.forEach(element => {
-        if (element.filename.contains(".fq")) {
-            const newFilename = element.filename.replace(".fq", ".fastq")
-        }
-    });
 
     // Replace spaces with underscores in genomeFile.filename
     if (genomeFile.filename.includes(' ')) {
