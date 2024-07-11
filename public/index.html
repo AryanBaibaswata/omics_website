@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <link rel="stylesheet" type="text/css" href="pipe.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viral Genome Assembly</title>
-    <script
-        type="module"
+    <script type="module"
         src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/progress-indicator.min.js"></script>
     <style>
         .step {
@@ -16,16 +16,39 @@
             display: inline-block;
             border-radius: 5px;
         }
+
         .blinking {
             animation: blinkingBackground 1s infinite;
         }
+
         @keyframes blinkingBackground {
-            0% { background-color: #fff; }
-            50% { background-color: #ffff99; }
-            100% { background-color: #fff; }
+            0% {
+                background-color: #fff;
+            }
+
+            50% {
+                background-color: #ffff99;
+            }
+
+            100% {
+                background-color: #fff;
+            }
+        }
+
+        .drag-and-drop {
+            border: 2px dashed #000;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .drag-and-drop.dragover {
+            background-color: #f0f0f0;
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar">
         <a href="">
@@ -41,21 +64,29 @@
 
     <div class='container'>
         <div class="topnav" id="myTopnav">
-                <a href="landing.html">Home</a>
+            <a href="landing.html">Home</a>
             <a href="dashboard.html" class="active">Reports</a>
             <a href="login.html">Login</a>
         </div>
     </div>
     <div class="form">
-        <h1>Upload FASTQ Files</h1>
+        <h1>Viral Genome Assembly</h1>
         <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-            <label for="files">Upload genomes to be sequenced</label><br>
-            <input type="file" name="files" id="files" accept=".fastq.gz, .fq.gz, .fq, .fastq" multiple required><br><br>
-            <label for="refgenome">Upload reference genome</label>
-            <br>
-            <input type="file" name="refgenome" id="refgenome" accept=".fa, .fasta, .fas" required>
-            <br><br>
-            <button type="submit">Upload and Process</button>
+            <div class="drop-areas-container">
+                <div class="drop-area-wrapper">
+                    <label for="files">Upload genomes to be sequenced</label><br>
+                    <div id="drop-area-files" class="drag-and-drop">Drag & Drop files here or click to select</div>
+                    <div id="files-count"></div>
+                    <input type="file" name="files" id="files" accept=".fastq.gz, .fq.gz, .fq, .fastq" multiple required hidden>
+                </div>
+                
+                <div class="drop-area-wrapper">
+                    <label for="refgenome">Upload reference genome</label><br>
+                    <div id="drop-area-refgenome" class="drag-and-drop">Drag & Drop reference genome here or click to select</div>
+                    <div id="refgenome-count"></div>
+                    <input type="file" name="refgenome" id="refgenome" accept=".fa, .fasta, .fas" required hidden>
+                </div>
+            </div>
         </form>
     </div>
 
@@ -146,20 +177,78 @@
             "Generation of VCF Index": "step-12",
             "Generation of Viral Genome Fasta": "step-13"
         };
-
+    
+        const dropAreaFiles = document.getElementById('drop-area-files');
+        const dropAreaRefGenome = document.getElementById('drop-area-refgenome');
+        const filesInput = document.getElementById('files');
+        const refGenomeInput = document.getElementById('refgenome');
+    
+        function updateFileCount(inputElement, dropArea) {
+            const fileCount = inputElement.files.length;
+            dropArea.textContent = `${fileCount} file${fileCount !== 1 ? 's' : ''} selected`;
+        }
+    
+        function handleDrop(e, inputElement, dropArea) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            inputElement.files = files;
+            updateFileCount(inputElement, dropArea);
+        }
+    
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    
+        function highlight(e) {
+            e.currentTarget.classList.add('dragover');
+        }
+    
+        function unhighlight(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+    
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropAreaFiles.addEventListener(eventName, preventDefaults, false);
+            dropAreaRefGenome.addEventListener(eventName, preventDefaults, false);
+        });
+    
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropAreaFiles.addEventListener(eventName, highlight, false);
+            dropAreaRefGenome.addEventListener(eventName, highlight, false);
+        });
+    
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropAreaFiles.addEventListener(eventName, unhighlight, false);
+            dropAreaRefGenome.addEventListener(eventName, unhighlight, false);
+        });
+    
+        dropAreaFiles.addEventListener('drop', (e) => handleDrop(e, filesInput, dropAreaFiles), false);
+        dropAreaRefGenome.addEventListener('drop', (e) => handleDrop(e, refGenomeInput, dropAreaRefGenome), false);
+    
+        filesInput.addEventListener('change', () => updateFileCount(filesInput, dropAreaFiles));
+        refGenomeInput.addEventListener('change', () => updateFileCount(refGenomeInput, dropAreaRefGenome));
+    
+        dropAreaFiles.addEventListener('click', () => {
+            filesInput.click();
+        });
+        dropAreaRefGenome.addEventListener('click', () => {
+            refGenomeInput.click();
+        });
+    
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             const formData = new FormData(form);
             const xhr = new XMLHttpRequest();
             xhr.open('POST', form.action, true);
-            
+    
             xhr.upload.onprogress = function (e) {
                 if (e.lengthComputable) {
                     const percentComplete = (e.loaded / e.total) * 100;
                     progress.textContent = `Upload Progress: ${percentComplete.toFixed(2)}%`;
                 }
             };
-            
+    
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     const response = JSON.parse(xhr.responseText);
@@ -176,9 +265,11 @@
                     progress.textContent = `Upload failed: ${xhr.statusText}`;
                 }
             };
-            
+    
             xhr.send(formData);
         });
     </script>
+    
 </body>
+
 </html>
