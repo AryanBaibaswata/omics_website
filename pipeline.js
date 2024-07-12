@@ -23,7 +23,7 @@ const currentDate = new Date();
 
 // Step 2: Convert to IST
 // IST is 5 hours and 30 minutes ahead of UTC
- // 5.5 hours in milliseconds
+// 5.5 hours in milliseconds
 const dateIST = new Date(currentDate.getTime());
 
 // Step 3: Format the date and time using Intl.DateTimeFormat
@@ -91,13 +91,13 @@ app.post('/upload', upload, async (req, res) => {
     const files = req.files['files'];
     const genomeFiles = req.files['refgenome'];
     if (!genomeFiles || genomeFiles.length === 0) {
-      return res.status(400).send('Please upload a .fasta or .fa file.');
+        return res.status(400).send('Please upload a .fasta or .fa file.');
     }
     try {
         // Add this new preprocessing step
         await Promise.all(files.map(async (file) => {
             let filePath = path.join(`uploads/${date}/files`, file.filename);
-            
+
             if (file.filename.endsWith('.fq')) {
                 // Rename .fq to .fastq and gzip
                 let newFilename = file.filename.slice(0, -3) + '.fastq';
@@ -123,7 +123,7 @@ app.post('/upload', upload, async (req, res) => {
                 file.filename = newFilename + '.gz';
             }
         }))
-    } catch (err) { 
+    } catch (err) {
         console.error('Error during file preprocessing:', err);
         return res.status(500).send('Error during file preprocessing.');
     }
@@ -133,41 +133,41 @@ app.post('/upload', upload, async (req, res) => {
     const genomeFile = genomeFiles[0];
     let genomeFilePath = path.join(`uploads/${date}/files`, genomeFile.filename);
     //testing for fq and fq.gz files 
-    
+
 
     // Replace spaces with underscores in genomeFile.filename
     if (genomeFile.filename.includes(' ')) {
-      const newFilename = genomeFile.filename.replace(/\s+/g, "_");
-      const newFilePath = path.join(`uploads/${date}/files`, newFilename);
-      fs.renameSync(genomeFilePath, newFilePath);
-      genomeFilePath = newFilePath;
-      genomeFile.filename = newFilename;
+        const newFilename = genomeFile.filename.replace(/\s+/g, "_");
+        const newFilePath = path.join(`uploads/${date}/files`, newFilename);
+        fs.renameSync(genomeFilePath, newFilePath);
+        genomeFilePath = newFilePath;
+        genomeFile.filename = newFilename;
     }
-  
+
     if (genomeFile.filename.endsWith('.fas')) {
-      const newFilename = genomeFile.filename.slice(0, -4) + '.fasta';
-      const newFilePath = path.join(`uploads/${date}/files`, newFilename);
-      fs.renameSync(genomeFilePath, newFilePath);
-      genomeFilePath = newFilePath;
-      genomeFile.filename = newFilename;
+        const newFilename = genomeFile.filename.slice(0, -4) + '.fasta';
+        const newFilePath = path.join(`uploads/${date}/files`, newFilename);
+        fs.renameSync(genomeFilePath, newFilePath);
+        genomeFilePath = newFilePath;
+        genomeFile.filename = newFilename;
     }
-  
+
     console.log(genomeFilePath);
     if (files.length % 2 !== 0) {
-      return res.status(400).send('Please upload files in pairs.');
+        return res.status(400).send('Please upload files in pairs.');
     }
-  
+
     const genomeFilename = path.basename(genomeFile.filename, path.extname(genomeFile.filename));
     console.log(genomeFilename);
-  
+
     // Replace spaces with underscores in the directory name
     const genomeDirName = genomeFilename.replace(/\s+/g, "_");
     fs.mkdirSync(`uploads/${date}/${genomeDirName}`);
-  
+
     // Replace spaces with underscores in indexBasePath
     const indexBasePath = path.join(`uploads/${date}/${genomeDirName}`, genomeDirName);
     console.log("indexbasepath:", indexBasePath);
-  
+
     const bowtieBuildCmd = `bowtie2-build ${genomeFilePath} ${indexBasePath}`;
     exec(bowtieBuildCmd, (error, stdout, stderr) => {
         console.log("began building")
@@ -215,7 +215,9 @@ app.post('/upload', upload, async (req, res) => {
         const samplesList = sampleFiles.map(sample => `    "${sample}"`).join(' \\\n');
         const GENOMEIDX1 = indexBasePath;
         const GENOMEIDX = genomeFilePath;
+
         const basedir = path.resolve(__dirname, `uploads/${date}`);
+        const progressFile = path.join(basedir, 'progress.txt');
 
 
         const pipelineScriptContent = `#!/bin/bash
@@ -235,54 +237,54 @@ app.post('/upload', upload, async (req, res) => {
             sleep 2
             echo "Step I: Quality Control and Preprocessing" >> \${progress_file}
             echo "Step 1.1: FastQC Quality Control Report for \${sample_name}" >> \${progress_file}
-            fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/files/\${sample_name}_1.fastq.gz" "\${basedir}/files/\${sample_name}_2.fastq.gz"
+            fastqc -o "\${basedir}/fastqc_output/" "\${basedir}/files/\${sample_name}_1.fastq.gz" "\${basedir}/files/\${sample_name}_2.fastq.gz" 2>&1 >> \${progress_file}
             sleep 2
             echo "Step-1.2: Trimmed Quality Control for \${sample_name}" >> \${progress_file}
             fastp -i "\${basedir}/files/\${sample_name}_1.fastq.gz" -o "\${basedir}/\${sample_name}_P1.fastq" \
-              -I "\${basedir}/files/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
-              --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2> "\${basedir}/fastp-\${sample_name}.log"
+            -I "\${basedir}/files/\${sample_name}_2.fastq.gz" -O "\${basedir}/\${sample_name}_P2.fastq" \
+            --thread 4 -h "\${basedir}/fastp-\${sample_name}.html" 2>&1 >> \${progress_file}
             sleep 2
             echo "Step II: Read Alignment for \${sample_name}" >> \${progress_file}
             echo "Step-2.1: Read Alignment for \${sample_name}" >> \${progress_file}
-            bowtie2 -p 64 -x "\${GENOMEIDX1}" -1 "\${basedir}/\${sample_name}_P1.fastq" -2 "\${basedir}/\${sample_name}_P2.fastq" -S "\${basedir}/\${sample_name}.sam"
+            bowtie2 -p 64 -x "\${GENOMEIDX1}" -1 "\${basedir}/\${sample_name}_P1.fastq" -2 "\${basedir}/\${sample_name}_P2.fastq" -S "\${basedir}/\${sample_name}.sam" 2>&1 >> \${progress_file}
             sleep 2
             echo "Step-III: Coverage Analysis for \${sample_name}" >> \${progress_file}
             echo "Step 3.1 Conversion Of Sam To BAM File for \${sample_name}" >> \${progress_file}
-            samtools view -b "\${basedir}/\${sample_name}.sam" -o "\${basedir}/\${sample_name}.bam"
+            samtools view -b "\${basedir}/\${sample_name}.sam" -o "\${basedir}/\${sample_name}.bam" 2>&1 >> \${progress_file}
             sleep 2
             echo "Step-3.2: Alignment Metrics for \${sample_name}" >> \${progress_file}
-              samtools flagstat "\${basedir}/\${sample_name}.bam" > "\${basedir}/\${sample_name}.flagstat.txt"
+              samtools flagstat "\${basedir}/\${sample_name}.bam" > "\${basedir}/\${sample_name}.flagstat.txt" 2>&1 >> \${progress_file}
             sleep 2
             echo "Step-3.3: Conversion of BAM To Sorted BAM for \${sample_name}" >> \${progress_file}
-            samtools sort "\${basedir}/\${sample_name}.bam" -o "\${basedir}/\${sample_name}.sorted.bam"
-            echo "Step-3.4: Removing duplicate reads from Sorted Bam Files for \${sample_name}" >> \${progress_file}
-            samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam"
+            samtools sort "\${basedir}/\${sample_name}.bam" -o "\${basedir}/\${sample_name}.sorted.bam" 2>&1 >> \${progress_file}
+            echo "Step-3.4: Removing duplicate reads from Sorted Bam Files for \${sample_name}" >> \${progress_file} 
+            samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam" 2>&1 >> \${progress_file}
             sleep 2
-            echo "Step-3.5: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file}
-            samtools depth "\${basedir}/\${sample_name}.duprem.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt"
+            echo "Step-3.5: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file} 
+            samtools depth "\${basedir}/\${sample_name}.duprem.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt" 2>&1 >> \${progress_file}
             sleep 2
-            input_bam="\${basedir}/coverage_\${sample_name}.txt"
-            output_bed="\${basedir}/\${sample_name}.bed"
+            input_bam="\${basedir}/coverage_\${sample_name}.txt" 
+            output_bed="\${basedir}/\${sample_name}.bed" 
             sleep 2
-            echo "Step-3.6: Extracting start end coordinates of missing read segments for \${sample_name}" >> \${progress_file}
-            python3 "pipelines/convert_bam_to_bed.py" "\${sample_name}" "\${input_bam}" "\${output_bed}"
+            echo "Step-3.6: Extracting start end coordinates of missing read segments for \${sample_name}" 
+            python3 "pipelines/convert_bam_to_bed.py" "\${sample_name}" "\${input_bam}" "\${output_bed}" 2>&1 >> \${progress_file}
             sleep 2
             echo "Step-3.7: Performing N-masking for \${sample_name}" >> \${progress_file}
-            bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${output_bed}" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta"
-            echo "Step IV: Generation of VCF, VCF Index and Viral Genome for \${sample_name}" >> \${progress_file}
+            bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${output_bed}" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta" 2>&1 >> \${progress_file}
+            echo "Step IV: Generation of VCF, VCF Index and Viral Genome for \${sample_name}" >> \${progress_file} 
             echo "Step-4: Generation of VCF for \${sample_name}" >> \${progress_file}
-            bcftools mpileup -f "\${GENOMEIDX}" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz"
+            bcftools mpileup -f "\${GENOMEIDX}" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz" 2>&1 >> \${progress_file}
             sleep 2
             echo "Step-4.1: Generation of VCF Index for \${sample_name}" >> \${progress_file}
-            bcftools index "\${basedir}/\${sample_name}.vcf.gz"
+            bcftools index "\${basedir}/\${sample_name}.vcf.gz" 2>&1 >> \${progress_file}
             sleep 2
             echo "Step-4.2: Generation of viral genome fasta for \${sample_name}" >> \${progress_file}
-            cat "\${basedir}/\${sample_name}_masked.fasta" | bcftools consensus "\${basedir}/\${sample_name}.vcf.gz" > "\${basedir}/\${sample_name}_genome.fa"
+            cat "\${basedir}/\${sample_name}_masked.fasta" | bcftools consensus "\${basedir}/\${sample_name}.vcf.gz" > "\${basedir}/\${sample_name}_genome.fa" 2>&1 >> \${progress_file}
             sleep 2
-            echo "complete!" >> \${progress_file}
+            echo "complete!" >> \${progress_file} 
         done
         echo "\$(date '+%Y-%m-%d %H:%M:%S') - Step 1.3: MultiQC Quality Control" >> \${progress_file}
-        multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/"
+        multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/" 2>&1 >> \${progress_file}
         `;
 
         const scriptPath = path.join(basedir, 'pipeline.sh');
@@ -295,13 +297,9 @@ app.post('/upload', upload, async (req, res) => {
             console.log(`Expecting sample files: ${path.join('uploads', `${sample}_1.fastq.gz`)}, ${path.join('uploads', `${sample}_2.fastq.gz`)}`);
         });
 
-        const progressFile = path.join('uploads', 'progress.txt');
         fs.writeFileSync(progressFile, ''); // Clear previous progress
 
         const child = exec(`bash ${scriptPath}`, { shell: '/bin/bash' });
-        child.stdout.pipe(process.stdout);
-        child.stderr.pipe(process.stderr);
-
         child.stdout.on('data', (data) => {
             console.log(`stdout: ${data}`);
             fs.appendFileSync(progressFile, data);
@@ -317,18 +315,22 @@ app.post('/upload', upload, async (req, res) => {
             fs.appendFileSync(progressFile, `Process completed with code ${code}\n`);
         });
 
-
         res.send('Pipeline execution started.');
     });
+
+
+    res.send('Pipeline execution started.');
+
 });
 // Route to stream progress updates
 app.get('/progress', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders(); // flush the headers to establish SSE with client
+    res.flushHeaders();
 
-    const progressFile = path.join(__dirname, 'uploads', 'progress.txt');
+    const basedir = path.resolve(__dirname, `uploads/${date}`);
+    const progressFile = path.join(basedir, 'progress.txt');
     let fileOffset = 0;
 
     const sendProgress = () => {
@@ -354,7 +356,7 @@ app.get('/progress', (req, res) => {
         }
     };
 
-    const intervalId = setInterval(sendProgress, 500); // Reduced interval to capture updates more frequently
+    const intervalId = setInterval(sendProgress, 500);
 
     req.on('close', () => {
         clearInterval(intervalId);
@@ -364,7 +366,8 @@ app.get('/progress', (req, res) => {
 
 // Route to download the progress log
 app.get('/download-progress', (req, res) => {
-    const progressFile = path.join(__dirname, 'uploads', 'progress.txt');
+    const basedir = path.resolve(__dirname, `uploads/${date}`);
+    const progressFile = path.join(basedir, 'progress.txt');
     if (fs.existsSync(progressFile)) {
         res.download(progressFile, 'progress_log.txt', (err) => {
             if (err) {
@@ -379,7 +382,8 @@ app.get('/download-progress', (req, res) => {
 
 
 const UPLOAD_FOLDER = path.join(__dirname, 'uploads');
-console.log
+
+
 
 app.get('/files', (req, res) => {
     fs.readdir(UPLOAD_FOLDER, (err, files) => {
