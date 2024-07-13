@@ -19,39 +19,36 @@ const PORT = process.env.PORT || 3000;
 // const handlebars = require('express-handlebars');
 // Set up multer for file uploads
 
-const currentDate = new Date();
+function generateUniqueFolderName() {
+    const currentDate = new Date();
+    const dateIST = new Date(currentDate.getTime());
+    const options = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Kolkata'
+    };
+    const formatter = new Intl.DateTimeFormat('en-GB', options);
+    const formattedDate = formatter.format(dateIST);
+    const formattedIST = formattedDate.replace(/\/|:|,/g, '-').replace(' ', 'T');
+    return formattedIST;
+}
 
-// Step 2: Convert to IST
-// IST is 5 hours and 30 minutes ahead of UTC
-// 5.5 hours in milliseconds
-const dateIST = new Date(currentDate.getTime());
+app.use((req, res, next) => {
+    req.uploadFolder = generateUniqueFolderName();
+    next();
+});
 
-// Step 3: Format the date and time using Intl.DateTimeFormat
-const options = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false, // Use 24-hour time
-    timeZone: 'Asia/Kolkata'
-};
-
-const formatter = new Intl.DateTimeFormat('en-GB', options);
-const formattedDate = formatter.format(dateIST);
-
-// Step 4: Replace slashes and colons with hyphens
-const formattedIST = formattedDate.replace(/\/|:|,/g, '-').replace(' ', 'T');
-const date = formattedIST
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const uploadPath = `uploads/${date}/files`;
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-            fs.mkdirSync(`uploads/${date}/fastqc_output`, { recursive: true });
-        }
+        const uploadPath = `uploads/${req.uploadFolder}/files`;
+        fs.mkdirSync(uploadPath, { recursive: true });
+        fs.mkdirSync(`uploads/${req.uploadFolder}/fastqc_output`, { recursive: true });
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
@@ -60,23 +57,6 @@ const storage = multer.diskStorage({
 });
 
 
-// app.use(session({
-//     store: new RedisStore({
-//       url: config.redisStore.url
-//     }),
-//     secret: config.redisStore.secret,
-//     resave: false,
-//     saveUninitialized: false
-//   }))
-//   app.use(passport.initialize())
-//   app.use(passport.session())
-
-
-// app.engine('.hbs', handlebars.engine({
-//     defaultLayout: 'main',
-//     extname: '.hbs',
-//     layoutsDir: path.join(__dirname, 'views/layouts')
-// }));
 const upload = multer({ storage }).fields([
     { name: 'files' }, // Adjust maxCount as needed
     { name: 'refgenome', maxCount: 1 }
@@ -96,12 +76,12 @@ app.post('/upload', upload, async (req, res) => {
     try {
         // Add this new preprocessing step
         await Promise.all(files.map(async (file) => {
-            let filePath = path.join(`uploads/${date}/files`, file.filename);
+            let filePath = path.join(`uploads/${req.uploadFolder}/files`, file.filename);
 
             if (file.filename.endsWith('.fq')) {
                 // Rename .fq to .fastq and gzip
                 let newFilename = file.filename.slice(0, -3) + '.fastq';
-                let newFilePath = path.join(`uploads/${date}/files`, newFilename);
+                let newFilePath = path.join(`uploads/${req.uploadFolder}/files`, newFilename);
                 await renamePromise(filePath, newFilePath);
                 await execPromise(`gzip ${newFilePath}`);
                 file.filename = newFilename + '.gz';
@@ -117,7 +97,7 @@ app.post('/upload', upload, async (req, res) => {
                 await execPromise(`gunzip ${filePath}`);
                 let unzippedPath = filePath.slice(0, -3);
                 let newFilename = file.filename.slice(0, -6) + '.fastq';
-                let newFilePath = path.join(`uploads/${date}/files`, newFilename);
+                let newFilePath = path.join(`uploads/${req.uploadFolder}/files`, newFilename);
                 await renamePromise(unzippedPath, newFilePath);
                 await execPromise(`gzip ${newFilePath}`);
                 file.filename = newFilename + '.gz';
@@ -131,14 +111,14 @@ app.post('/upload', upload, async (req, res) => {
 
 
     const genomeFile = genomeFiles[0];
-    let genomeFilePath = path.join(`uploads/${date}/files`, genomeFile.filename);
+    let genomeFilePath = path.join(`uploads/${req.uploadFolder}/files`, genomeFile.filename);
     //testing for fq and fq.gz files 
 
 
     // Replace spaces with underscores in genomeFile.filename
     if (genomeFile.filename.includes(' ')) {
         const newFilename = genomeFile.filename.replace(/\s+/g, "_");
-        const newFilePath = path.join(`uploads/${date}/files`, newFilename);
+        const newFilePath = path.join(`uploads/${req.uploadFolder}/files`, newFilename);
         fs.renameSync(genomeFilePath, newFilePath);
         genomeFilePath = newFilePath;
         genomeFile.filename = newFilename;
@@ -146,7 +126,7 @@ app.post('/upload', upload, async (req, res) => {
 
     if (genomeFile.filename.endsWith('.fas')) {
         const newFilename = genomeFile.filename.slice(0, -4) + '.fasta';
-        const newFilePath = path.join(`uploads/${date}/files`, newFilename);
+        const newFilePath = path.join(`uploads/${req.uploadFolder}/files`, newFilename);
         fs.renameSync(genomeFilePath, newFilePath);
         genomeFilePath = newFilePath;
         genomeFile.filename = newFilename;
@@ -162,10 +142,10 @@ app.post('/upload', upload, async (req, res) => {
 
     // Replace spaces with underscores in the directory name
     const genomeDirName = genomeFilename.replace(/\s+/g, "_");
-    fs.mkdirSync(`uploads/${date}/${genomeDirName}`);
+    fs.mkdirSync(`uploads/${req.uploadFolder}/${genomeDirName}`);
 
     // Replace spaces with underscores in indexBasePath
-    const indexBasePath = path.join(`uploads/${date}/${genomeDirName}`, genomeDirName);
+    const indexBasePath = path.join(`uploads/${req.uploadFolder}/${genomeDirName}`, genomeDirName);
     console.log("indexbasepath:", indexBasePath);
 
     const bowtieBuildCmd = `bowtie2-build ${genomeFilePath} ${indexBasePath}`;
@@ -190,20 +170,20 @@ app.post('/upload', upload, async (req, res) => {
             } else if (file1.replace('_R1.fastq.gz', '') === file2.replace('_R2.fastq.gz', '')) {
                 const sampleName = file1.replace('_R1.fastq.gz', '');
                 sampleFiles.push(sampleName);
-                const oldPath1 = path.join(`uploads/${date}/files`, file1);
-                const oldPath2 = path.join(`uploads/${date}/files`, file2);
-                const newPath1 = path.join(`uploads/${date}/files`, `${sampleName}_1.fastq.gz`);
-                const newPath2 = path.join(`uploads/${date}/files`, `${sampleName}_2.fastq.gz`);
+                const oldPath1 = path.join(`uploads/${req.uploadFolder}/files`, file1);
+                const oldPath2 = path.join(`uploads/${req.uploadFolder}/files`, file2);
+                const newPath1 = path.join(`uploads/${req.uploadFolder}/files`, `${sampleName}_1.fastq.gz`);
+                const newPath2 = path.join(`uploads/${req.uploadFolder}/files`, `${sampleName}_2.fastq.gz`);
 
                 fs.renameSync(oldPath1, newPath1);
                 fs.renameSync(oldPath2, newPath2);
             } else if (file2.replace('_R1.fastq.gz', '') === file1.replace('_R2.fastq.gz', '')) {
                 const sampleName = file2.replace('_R1.fastq.gz', '');
                 sampleFiles.push(sampleName);
-                const oldPath1 = path.join(`uploads/${date}/files`, file1);
-                const oldPath2 = path.join(`uploads/${date}/files`, file2);
-                const newPath1 = path.join(`uploads/${date}/files`, `${sampleName}_1.fastq.gz`);
-                const newPath2 = path.join(`uploads/${date}/files`, `${sampleName}_2.fastq.gz`);
+                const oldPath1 = path.join(`uploads/${req.uploadFolder}/files`, file1);
+                const oldPath2 = path.join(`uploads/${req.uploadFolder}/files`, file2);
+                const newPath1 = path.join(`uploads/${req.uploadFolder}/files`, `${sampleName}_1.fastq.gz`);
+                const newPath2 = path.join(`uploads/${req.uploadFolder}/files`, `${sampleName}_2.fastq.gz`);
 
                 fs.renameSync(oldPath1, newPath1);
                 fs.renameSync(oldPath2, newPath2);
@@ -216,7 +196,7 @@ app.post('/upload', upload, async (req, res) => {
         const GENOMEIDX1 = indexBasePath;
         const GENOMEIDX = genomeFilePath;
 
-        const basedir = path.resolve(__dirname, `uploads/${date}`);
+        const basedir = path.resolve(__dirname, `uploads/${req.uploadFolder}`);
         const progressFile = path.join(basedir, 'progress.txt');
 
 
@@ -325,7 +305,7 @@ app.get('/progress', (req, res) => {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    const basedir = path.resolve(__dirname, `uploads/${date}`);
+    const basedir = path.resolve(__dirname, `uploads/${req.params.folder}`);
     const progressFile = path.join(basedir, 'progress.txt');
     let fileOffset = 0;
 
@@ -363,7 +343,7 @@ app.get('/progress', (req, res) => {
 
 // Route to download the progress log
 app.get('/download-progress', (req, res) => {
-    const basedir = path.resolve(__dirname, `uploads/${date}`);
+    const basedir = path.resolve(__dirname, `uploads/${req.params.folder}`);
     const progressFile = path.join(basedir, 'progress.txt');
     if (fs.existsSync(progressFile)) {
         res.download(progressFile, 'progress_log.txt', (err) => {
