@@ -8,26 +8,42 @@
   gap: 20px;
 }
 
-.drop-area-wrapper {
+.card {
   flex: 1;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
 }
 
+.card-header {
+  background-color: #6c757d;
+  color: white;
+  padding: 10px 15px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  font-weight: bold;
+}
 
+.card-body {
+  padding: 15px;
+}
 
 .drag-and-drop {
-  width: 100%;
-  box-sizing: border-box;
-  height: 50vh; /* Increase this value to make them taller */
+  border: 2px dashed #6c757d;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+  margin: 10px 0;
+  background-color: #fff;
+  height: 200px; /* Adjust this value as needed */
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 16px; /* Increase font size */
-  padding: 20px;
-  margin-bottom: 10px;
+  font-size: 16px;
 }
 
 form {
-  box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
   background-color: #f9f9f9;
   justify-content: center;
   align-items: center;
