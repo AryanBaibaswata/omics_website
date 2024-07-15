@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omics Toolbox</title>
+    <style>
+        /* Your existing styles here */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/AIIMS_New_Delhi.png" alt="Home" width="64">
+        </a>
+        <div class="navsec1">
+          <h1>AIIMS OMICS TOOLBOX</h1>
+        </div>
+        <div class="navsec2">
+          <img src="https://cmie-aiims.in/wp-content/uploads/2022/04/ccrf-logo.jpg" alt="India" width="64">
+        </div>
+      </nav>
+    <div id="auth-section">
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="email" id="login-email" required placeholder="Email">
+            <input type="password" id="login-password" required placeholder="Password">
+            <button type="submit">Login</button>
+        </form>
+        <h2>Register</h2>
+        <form id="register-form">
+            <input type="text" id="register-username" required placeholder="Username">
+            <input type="email" id="register-email" required placeholder="Email">
+            <input type="password" id="register-password" required placeholder="Password">
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+    <div id="content-section" class="hidden">
+        <h1>Retrieve Your Data</h1>
+        <button id="logout-button">Logout</button>
+        <ul id="directoryList"></ul>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+
+        function showContent() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('content-section').classList.remove('hidden');
+            loadDirectories();
+        }
+
+        function showAuth() {
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('content-section').classList.add('hidden');
+        }
+
+        if (token) {
+            showContent();
+        } else {
+            showAuth();
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    showContent();
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+            }
+        });
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await response.json();
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    showContent();
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+            }
+        });
+
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            try {
+                await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                localStorage.removeItem('token');
+                showAuth();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        function loadDirectories() {
+            fetch('/list-directories', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(response => response.json())
+                .then(directories => {
+                    const directoryList = document.getElementById('directoryList');
+                    directoryList.innerHTML = '';
+                    directories.forEach(dir => {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = '#';
+                        a.textContent = dir;
+                        a.onclick = () => loadFiles(dir);
+                        li.appendChild(a);
+                        const ul = document.createElement('ul');
+                        ul.id = `${dir}-files`;
+                        ul.style.display = 'none';
+                        li.appendChild(ul);
+                        directoryList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function loadFiles(folder) {
+            const fileList = document.getElementById(`${folder}-files`);
+            if (fileList.style.display === 'none') {
+                fetch(`/uploads/${encodeURIComponent(folder)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                    .then(response => response.json())
+                    .then(files => {
+                        fileList.innerHTML = files.map(file => 
+                            `<li><a href="/download/${encodeURIComponent(folder)}/${encodeURIComponent(file)}" download>${file}</a></li>`
+                        ).join('');
+                        fileList.style.display = 'block';
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else {
+                fileList.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

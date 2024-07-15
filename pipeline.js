@@ -13,11 +13,25 @@ const renamePromise = util.promisify(fs.rename);
 // // const session = require('express-session');
 // // const redis = require("connect-redis")(session);
 // // const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
+const authRoutes = require('./controllers/auth');
+const authMiddleware = require('./middleware/auth');
+require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 // const handlebars = require('express-handlebars');
 // const handlebars = require('express-handlebars');
 // Set up multer for file uploads
+
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
+
+app.use(express.json());
+app.use('/auth', authRoutes);
+
+
 
 function generateUniqueFolderName() {
     const currentDate = new Date();
@@ -381,6 +395,9 @@ app.get('/uploads/:filename', (req, res) => {
     });
 });
 
+
+
+
 app.get('/uploads/:filename/:subfolder', (req, res) => {
     const file = path.join(UPLOAD_FOLDER, req.params.filename, req.params.subfolder);
     fs.readdir(file, (err, files) => {
@@ -388,6 +405,36 @@ app.get('/uploads/:filename/:subfolder', (req, res) => {
             return res.status(500).send('Unable to scan files');
         }
         res.json(files);
+    });
+});
+
+app.get('/list-directories', (req, res) => {
+    const uploadsDir = path.join(__dirname, 'uploads');
+    fs.readdir(uploadsDir, (err, files) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error reading uploads directory' });
+        }
+        // Filter out non-directory entries and sort by name (which is the timestamp)
+        const directories = files.filter(file => 
+            fs.statSync(path.join(uploadsDir, file)).isDirectory()
+        ).sort((a, b) => b.localeCompare(a)); // Sort in descending order
+
+        res.json(directories);
+    });
+});
+
+// Update the /retrieve route to serve the HTML file
+app.get('/retrieve', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'retrieve.html'));
+});
+
+// Update the route to serve files
+app.get('/download/:folder/:file', (req, res) => {
+    const filePath = path.join(__dirname, 'uploads', req.params.folder, req.params.file);
+    res.download(filePath, (err) => {
+        if (err) {
+            res.status(404).send('File not found');
+        }
     });
 });
 // Start the server

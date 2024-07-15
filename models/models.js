@@ -1,95 +1,151 @@
 const mongoose = require('mongoose');
-const { default: reportSchema } = require('./models/reports');
-require('dotenv').config();
-const url = process.env.MONGODB_URI;
-mongoose.set('strictQuery', false);
+const bcrypt = require('bcrypt');
 
-mongoose.connect(url);
+const userSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    phone: {
+        type: String
+    },
+    reports: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Report' }],
+    pipes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Pipe' }],
+    issues: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Issue' }]
+});
 
-const userSchema = new mongoose.Schema(
-    {
-        user_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-        },
-        username: {
-            type: String,
-            required: true,
-        },
-        password: {
-            type: String,
-            required: true,
-        },
-        phone: {
-            type:String,
-        },
-        reports,
-        pipes,
-        issues,
+userSchema.pre('save', async function(next) {
+    if (this.isModified('password')) {
+        this.password = await bcrypt.hash(this.password, 10);
     }
-)
+    next();
+});
 
-const reportSchema = new mongoose.Schema(
-    {
-        sample_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-        },
-        sample_name:{
-            type: Array,
-            required: true,
-        },
-        date: {
-            type: Date,
-            required: true,
-        },
-        flocation: {
-            type: String,
-            required: true,
-        },
-        sample_type: {
-            type: String,
-            required: true,
-        },
-        user_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-        }
+userSchema.methods.comparePassword = function(candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+};
+
+const reportSchema = new mongoose.Schema({
+    sample_name: {
+        type: [String],
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    flocation: {
+        type: String,
+        required: true
+    },
+    sample_type: {
+        type: String,
+        required: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['uploaded', 'processing', 'completed', 'failed'],
+        default: 'uploaded'
+    },
+    file_paths: [{
+        type: String,
+        required: true
+    }]
+});
+
+const pipeSchema = new mongoose.Schema({
+    pipe_params: {
+        type: [String],
+        required: true
+    },
+    sample: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Report',
+        required: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    flocation: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ['queued', 'running', 'completed', 'failed'],
+        default: 'queued'
+    },
+    progress: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    results: {
+        type: mongoose.Schema.Types.Mixed
     }
-)
+});
 
-const pipeSchema = new mongoose.Schema(
-    {
-        pipe_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-        },
-        pipe_params:{
-            type: Array,
-            required: true,
-        },
-        sample_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-        },
-        user_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-        },
-        date: {
-            type: Date,
-            required: true,
-        },
-        flocation: {
-            type: String,
-            required: true,
-        },
-        
+const uploadSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    report: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Report',
+        required: true
+    },
+    file_name: {
+        type: String,
+        required: true
+    },
+    file_size: {
+        type: Number,
+        required: true
+    },
+    upload_status: {
+        type: String,
+        enum: ['pending', 'in_progress', 'completed', 'failed'],
+        default: 'pending'
+    },
+    upload_progress: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+    },
+    upload_date: {
+        type: Date,
+        default: Date.now
     }
-)
+});
 
-module.exports = {
-    User: mongoose.model('User', userSchema),
-    Report: mongoose.model('Report', reportSchema),
-    Pipe: mongoose.model('Pipe', pipeSchema),
-}
+const User = mongoose.model('User', userSchema);
+const Report = mongoose.model('Report', reportSchema);
+const Pipe = mongoose.model('Pipe', pipeSchema);
+const Upload = mongoose.model('Upload', uploadSchema);
+
+module.exports = { User, Report, Pipe, Upload };
