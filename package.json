@@ -1,0 +1,45 @@
+{
+  "name": "omics_website",
+  "version": "1.0.0",
+  "description": "",
+  "main": "newserver.js",
+  "scripts": {
+    "dev": "nodemon pipeline.js --ignore uploads/ --ignore fastp.json",
+    "start": "node pipeline.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pipe": "node pipeline.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "braces": ">=3.0.3",
+    "connect-redis": "^7.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-handlebars": "^7.1.2",
+    "express-session": "^1.18.0",
+    "express-zip": "^3.0.0",
+    "fast-components": "^1.0.1",
+    "gridfs-stream": "^1.1.1",
+    "handlebars": "^4.7.8",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.4",
+    "multer": "^1.4.5-lts.1",
+    "multer-gridfs": "^0.0.1",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "redis": "^4.6.15",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "json": "^11.0.0",
+    "nodemon": "^3.1.0"
+  }
+}

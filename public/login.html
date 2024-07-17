@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login and SignUp Form</title>
+
+</head>
+
+<link rel="stylesheet" type="text/css" href="login.css">
+
+<nav class="navbar">
+  <a href="">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/AIIMS_New_Delhi.png" alt="Home" width="64">
+  </a>
+  <div class="navsec1">
+    <h1>AIIMS OMICS TOOLBOX</h1>
+  </div>
+  <div class="navsec2">
+    <img src="https://cmie-aiims.in/wp-content/uploads/2022/04/ccrf-logo.jpg" alt="India" width="64">
+  </div>
+</nav>
+
+<body>
+  <div class="form_container">
+    <div id="feedback-form">
+
+      <div>
+
+        <div class="showelements">
+          <form action="/login" id="form1" method="POST">
+            <h2 class="header" id="signup_header">Login</h2>
+            <input type="text" name="email" id="txt1" placeholder="UserID/Email Address">
+            <input type="text" name="Password" id="txt2" placeholder="Password">
+            <label for="signup">Create an account</label><a href="#" id="sign_up_link">Sign Up</a>
+            <button type="submit" id="submit_button1">Login</button>
+          </form>
+        </div>
+
+        <div class="hiddenelements">
+          <form action="/register" id="form2" method="POST" onsubmit="return checkPassword()">
+            <h2 class="header" id="signup_header">Sign Up</h2>
+            <input type="email" name="email" placeholder="Email"></input>
+            <input type="text" name="name" placeholder="Name"></input>
+            <input type="number" name="mobileno" placeholder="Mobile No"></input>
+            <input type="password" name="pwd" placeholder="Enter Password" required></input>
+            <input type="password" name="reenterpwd" placeholder="Re-enter Password" required></input>
+            <label for="login">Already have an account?</label><a href="#" id="login_link">Login</a>
+            <button type="submit" id="submit_button2">Sign Up</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+
+  document.querySelector('#sign_up_link').addEventListener('click', function (event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.hiddenelements')
+
+    show.forEach(function (element) {
+      element.style.display = 'block';
+    });
+  });
+
+
+  document.querySelector('#sign_up_link').addEventListener('click', function (event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.showelements')
+
+    show.forEach(function (element) {
+      element.style.display = 'none';
+    });
+  });
+
+  document.querySelector('#login_link').addEventListener('click', function (event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.showelements')
+
+    show.forEach(function (element) {
+      element.style.display = 'none';
+    });
+  });
+
+  document.querySelector('#login_link').addEventListener('click', function (event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.showelements')
+
+    show.forEach(function (element) {
+      element.style.display = 'block';
+    });
+  });
+
+  document.querySelector('#login_link').addEventListener('click', function (event) {
+    event.preventDefault(); // Prevent default link behavior
+
+    //get the content of header label of form
+    const show = document.querySelectorAll('.hiddenelements')
+
+    show.forEach(function (element) {
+      element.style.display = 'none';
+    });
+  });
+
+  function checkPassword(form) {
+    password1 = form.password1.value;
+    password2 = form.password2.value;
+
+    // If password not entered 
+    if (password1 == '')
+      alert("Please enter Password");
+
+    // If confirm password not entered 
+    else if (password2 == '')
+      alert("Please enter confirm password");
+
+    // If Not same return False.     
+    else if (password1 != password2) {
+      alert("\nPassword did not match: Please try again...")
+      return false;
+    }
+
+    // If same return True. 
+    else {
+      return true;
+    }
+  }
+
+  function signup() {
+    var formData = new FormData(document.getElementById('form2'));
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/submit-form', true);
+    xhr.onload = function () {
+      if (xhr.status == 200) {
+        console.log(xhr.responseText);
+      } else {
+        console.log('Error occurred during signup');
+      }
+
+    }
+    xhr.send(formData);
+    console.log(json.stringify(formData));
+  }
+
+</script>
+
+</html>
