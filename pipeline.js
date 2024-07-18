@@ -259,11 +259,11 @@ app.post('/upload', upload, async (req, res) => {
             sleep 2
             
             samtools view \${basedir}/\${sample_name}.duprem.bam |
-  awk '{split ($6,a,"[MIDNSHP]"); bp=$4-1; n=0;
-    for (i=1; i<=length(a); i++) {
-      n+=1+length(a[i]);
-      if (substr($6,n,1)=="M") print $3"\t"bp"\t"(bp+=a[i]);
-      if (substr($6,n,1)=="D") bp+=a[i];
+            awk '{split ($6,a,"[MIDNSHP]"); bp=$4-1; n=0;
+            for (i=1; i<=length(a); i++) {
+            n+=1+length(a[i]);
+            if (substr($6,n,1)=="M") print $3"\t"bp"\t"(bp+=a[i]);
+            if (substr($6,n,1)=="D") bp+=a[i];
     }
   }' > \${basedir}/\${sample_name}.bed
             sleep 2
