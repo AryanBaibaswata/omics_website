@@ -255,16 +255,20 @@ app.post('/upload', upload, async (req, res) => {
             samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam" 2>&1 >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.5: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file} 
-            samtools depth "\${basedir}/\${sample_name}.duprem.bam" | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt" 2>&1 >> \${progress_file}
+            samtools depth "\${basedir}/\${sample_name}.duprem.bam" -aa | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt" 2>&1 >> \${progress_file}
             sleep 2
-            input_bam="\${basedir}/coverage_\${sample_name}.txt" 
-            output_bed="\${basedir}/\${sample_name}.bed" 
-            sleep 2
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.6: Extracting start end coordinates of missing read segments for \${sample_name}" 
-            python3 "pipelines/convert_bam_to_bed.py" "\${sample_name}" "\${input_bam}" "\${output_bed}" 2>&1 >> \${progress_file}
+            
+            samtools view \${basedir}/\${sample_name}.duprem.bam |
+  awk '{split ($6,a,"[MIDNSHP]"); bp=$4-1; n=0;
+    for (i=1; i<=length(a); i++) {
+      n+=1+length(a[i]);
+      if (substr($6,n,1)=="M") print $3"\t"bp"\t"(bp+=a[i]);
+      if (substr($6,n,1)=="D") bp+=a[i];
+    }
+  }' > \${basedir}/\${sample_name}.bed
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.7: Performing N-masking for \${sample_name}" >> \${progress_file}
-            bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${output_bed}" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta" 2>&1 >> \${progress_file}
+            bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${sample_name}.bed" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta" 2>&1 >> \${progress_file}
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step IV: Generation of VCF, VCF Index and Viral Genome for \${sample_name}" >> \${progress_file} 
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-4: Generation of VCF for \${sample_name}" >> \${progress_file}
             bcftools mpileup -f "\${GENOMEIDX}" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz" 2>&1 >> \${progress_file}
@@ -277,7 +281,7 @@ app.post('/upload', upload, async (req, res) => {
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - complete!" >> \${progress_file} 
         done
-        echo "\$(date '+%Y-%m-%d %H:%M:%S') - Step 1.3: MultiQC Quality Control" >> \${progress_file}
+        echo "\$(date '+%Y-%m-%d %H:%M:%S') - Step V: MultiQC Quality Control" >> \${progress_file}
         multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/" 2>&1 >> \${progress_file}
         `;
 
@@ -319,6 +323,7 @@ app.get('/progress/:folder', (req, res) => {
     res.flushHeaders();
 
     const basedir = path.resolve(__dirname, 'uploads/', req.params.folder);
+    console.log(basedir)
     const progressFile = path.join(basedir, 'progress.txt');
     let fileOffset = 0;
 
