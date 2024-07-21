@@ -17,6 +17,10 @@
             padding: 20px;
         }
 
+        #progress {
+            display: none;
+        }
+
         .pipeline-step {
             background-color: #f0f0f0;
             border: 1px solid #ccc;
@@ -83,6 +87,7 @@
             }
         }
 
+
         .drag-and-drop {
             border: 2px dashed #000;
             border-radius: 5px;
@@ -94,14 +99,23 @@
         .drag-and-drop.dragover {
             background-color: #f0f0f0;
         }
+
         .flashing {
             animation: flashingBackground 1s infinite;
         }
 
         @keyframes flashingBackground {
-            0% { background-color: #f0f0f0; }
-            50% { background-color: #ffff99; }
-            100% { background-color: #f0f0f0; }
+            0% {
+                background-color: #f0f0f0;
+            }
+
+            50% {
+                background-color: #ffff99;
+            }
+
+            100% {
+                background-color: #f0f0f0;
+            }
         }
     </style>
 </head>
@@ -179,11 +193,11 @@
     </div>
     <div class="bottom">
         <h2>Progress Log:</h2>
+        <div id="progress"></div>
         <a href="/download-progress" download="progress_log.txt">Download Progress Log</a>
     </div>
     <script>
         const form = document.getElementById('uploadForm');
-        const progress = document.getElementById('progress');
         const steps = {
             "FastQC Quality Control Report": "step-1",
             "Fastp Quality Control": "step-2",
@@ -233,110 +247,70 @@
             e.currentTarget.classList.remove('dragover');
         }
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropAreaFiles.addEventListener(eventName, preventDefaults, false);
-            dropAreaRefGenome.addEventListener(eventName, preventDefaults, false);
-        });
+        function addDragAndDropHandlers(dropArea, inputElement) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropAreaFiles.addEventListener(eventName, highlight, false);
-            dropAreaRefGenome.addEventListener(eventName, highlight, false);
-        });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropAreaFiles.addEventListener(eventName, unhighlight, false);
-            dropAreaRefGenome.addEventListener(eventName, unhighlight, false);
-        });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
 
-        dropAreaFiles.addEventListener('drop', (e) => handleDrop(e, filesInput, dropAreaFiles), false);
-        dropAreaRefGenome.addEventListener('drop', (e) => handleDrop(e, refGenomeInput, dropAreaRefGenome), false);
+            dropArea.addEventListener('drop', (e) => handleDrop(e, inputElement, dropArea), false);
 
-        filesInput.addEventListener('change', () => updateFileCount(filesInput, dropAreaFiles));
-        refGenomeInput.addEventListener('change', () => updateFileCount(refGenomeInput, dropAreaRefGenome));
+            dropArea.addEventListener('click', () => {
+                inputElement.click();
+            });
 
-        dropAreaFiles.addEventListener('click', () => {
-            filesInput.click();
-        });
-        dropAreaRefGenome.addEventListener('click', () => {
-            refGenomeInput.click();
-        });
+            inputElement.addEventListener('change', () => updateFileCount(inputElement, dropArea));
+        }
 
-        let currentUploadFolder = '';
+        addDragAndDropHandlers(dropAreaFiles, filesInput);
+        addDragAndDropHandlers(dropAreaRefGenome, refGenomeInput);
 
-        form.addEventListener('submit', function (e) {
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
+            buttonText.textContent = 'Processing...';
+            progressBar.style.width = '0%';
+            progressBar.style.display = 'block';
+
             const formData = new FormData(form);
+
             const xhr = new XMLHttpRequest();
             xhr.open('POST', form.action, true);
 
-            xhr.upload.onprogress = function (e) {
+            xhr.upload.onprogress = (e) => {
                 if (e.lengthComputable) {
                     const percentComplete = (e.loaded / e.total) * 100;
                     progressBar.style.width = `${percentComplete}%`;
-                    progress.textContent = `Upload Progress: ${percentComplete.toFixed(2)}%`;
                 }
             };
 
-            xhr.onload = function () {
+            xhr.onload = () => {
                 if (xhr.status === 200) {
+                    buttonText.textContent = 'Done';
+                    // Assuming server responds with the current step in JSON format
                     const response = JSON.parse(xhr.responseText);
-                    currentUploadFolder = response.uploadFolder;
-                    progress.textContent = response.message;
-                    startProgressMonitoring();
-                } else {
-                    progress.textContent = `Upload failed: ${xhr.statusText}`;
-                    uploadButton.classList.add('error');
-                }
-            };
+                    const currentStep = response.currentStep;
 
-            xhr.onerror = function () {
-                progress.textContent = 'Upload failed.';
-                uploadButton.classList.add('error');
-            };
-
-            uploadButton.classList.remove('error');
-            progressBar.style.width = '0%';
-            xhr.send(formData);
-        });
-
-        function startProgressMonitoring() {
-            const eventSource = new EventSource(`/progress/${currentUploadFolder}`);
-
-            eventSource.onmessage = function (event) {
-                const progressData = event.data;
-                progress.textContent += progressData + '\n';
-
-                for (const [step, id] of Object.entries(steps)) {
-                    if (progressData.includes(step)) {
-                        const stepElement = document.getElementById(id);
-                        if (stepElement) {
+                    for (const [stepName, stepId] of Object.entries(steps)) {
+                        const stepElement = document.getElementById(stepId);
+                        if (stepName === currentStep) {
                             stepElement.classList.add('blinking');
-                            setTimeout(() => {
-                                stepElement.classList.remove('blinking');
-                            }, 1000);
+                        } else {
+                            stepElement.classList.remove('blinking');
                         }
                     }
-                }
-
-                if (progressData.includes("Process completed")) {
-                    eventSource.close();
+                } else {
+                    buttonText.textContent = 'Error';
                 }
             };
 
-            eventSource.onerror = function () {
-                console.error("EventSource failed:");
-                eventSource.close();
-            };
-        }
-
-        const downloadLink = document.querySelector('a[href="/download-progress"]');
-        downloadLink.addEventListener('click', function (e) {
-            e.preventDefault();
-            if (currentUploadFolder) {
-                window.location.href = `/download-progress/${currentUploadFolder}`;
-            } else {
-                alert('No upload has been completed yet.');
-            }
+            xhr.send(formData);
         });
     </script>
 

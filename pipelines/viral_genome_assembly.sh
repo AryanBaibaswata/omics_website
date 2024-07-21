@@ -38,8 +38,8 @@ fastp -i ${BASEDIRDATA}/${sample}_1.fastq.gz -o ${BASEDIRDATA}/${sample}_P1.fast
 
 stime=`date +"%Y-%m-%d %H:%M:%S"`
 echo "$stime Step-2 (Read Alignment)"
-bowtie2 -p 64 -x /mnt/c/Users/asus/genome_assembly/genome_sars_cov2/sars_cov2 -1 ${BASEDIRDATA}/${sample}_P1.fastq -2 ${BASEDIRDATA}/${sample}_P2.fastq -S ${sample}.sam 
-#bowtie2 -p 64 -x /mnt/c/Users/asus/genome_assembly/genome_sars_cov2/sars_cov2 -1 SRR21139865_P1.fastq -2 SRR21139865_P2.fastq -S SRR21139865.sam 
+bowtie2 -p 64 -x /mnt/e/genome_assembly/genome_sars_cov2/sars_cov2 -1 ${BASEDIRDATA}/${sample}_P1.fastq -2 ${BASEDIRDATA}/${sample}_P2.fastq -S ${sample}.sam 
+#bowtie2 -p 64 -x /mnt/e/genome_assembly/genome_sars_cov2/sars_cov2 -1 SRR21139865_P1.fastq -2 SRR21139865_P2.fastq -S SRR21139865.sam 
 
 stime=`date +"%Y-%m-%d %H:%M:%S"`
 echo "$stime Step-3 (Conversion Of Sam To BAM File)"
@@ -54,42 +54,43 @@ samtools flagstat ${sample}.bam > ${sample}.flagstat.txt
 stime=`date +"%Y-%m-%d %H:%M:%S"`
 echo "$stime Step-5 (Conversion of BAM To Sorted BAM)"
 samtools sort ${sample}.bam -o ${sample}.sorted.bam 
-#samtools sort SRR21139865.bam -o SRR21139865.sorted.bam 
-
-stime=`date +"%Y-%m-%d %H:%M:%S"`
-echo "$stime Step-6 (Deriving Low Coverage Bed File)"
-samtools depth ${sample}.sorted.bam | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > ${sample}_coverage.txt
-
-input_bam="${sample}_coverage.txt"
-output_bed="${sample}.bed"
-
-stime=`date +"%Y-%m-%d %H:%M:%S"`
-echo "$stime Step-7 (run script to extract start end coordinates of missing read segments)"
-python3 convert_bam_to_bed.py "${sample}" "${input_bam}" "${output_bed}"
-
-stime=`date +"%Y-%m-%d %H:%M:%S"`
-echo "$stime Step-8 (Performing N-masking)"
-bedtools maskfasta -fi /mnt/c/Users/asus/genome_assembly/genome_sars_cov2/NC_045512.2.fasta -bed ${sample}.bed -mc N -fo ${sample}_masked.fasta
-#bedtools maskfasta -fi /mnt/c/Users/asus/genome_assembly/genome_sars_cov2/NC_045512.2.fasta -bed SRR21139865_low_coverage_regions_1.bed -mc N -fo SRR21139865_masked.fasta
+#samtools sort SRR21139865.bam -o SRR21139865.sorted.bam
 
 stime=`date +"%Y-%m-%d %H:%M:%S"`
 echo "$stime Step-9 (Remove duplicate reads from Sorted Bam Files)"
 samtools rmdup -S ${sample}.sorted.bam ${sample}.duprem.bam
-#samtools rmdup -S SRR21139865.sorted.bam SRR21139865.duprem.bam
+#samtools rmdup -S SRR21139865.sorted.bam SRR21139865.duprem.bam 
+
+stime=`date +"%Y-%m-%d %H:%M:%S"`
+echo "$stime Step-6 (Deriving Low Coverage Bed File)"
+samtools depth ${sample}.duprem.bam -aa | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > ${sample}_coverage.txt
+#samtools depth SRR21139865.duprem.bam -aa | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > SRR21139865_coverage.txt
+
+stime=`date +"%Y-%m-%d %H:%M:%S"`
+echo "$stime Step-7 (run script to extract start end coordinates of missing read segments)"
+python3 convert_txt_to_bed.py "${sample}" "${input_txt}" "${output_bed}"
+echo "${sample} $input_txt $output_bed"
+stime=`date +"%Y-%m-%d %H:%M:%S"`
+echo "$stime Step-8 (Performing N-masking)"
+bedtools maskfasta -fi /mnt/e/genome_assembly/genome_sars_cov2/NC_045512.2.fasta -bed ${sample}.bed -mc N -fo ${sample}_masked.fasta
+#bedtools maskfasta -fi  /mnt/e/genome_assembly/genome_sars_cov2/NC_045512.2.fasta -bed SRR21139865_low_coverage_regions_1.bed -mc N -fo SRR21139865_masked.fasta
 
 stime=`date +"%Y-%m-%d %H:%M:%S"`
 echo "$stime Step-10 (Generation of vcf)"
-bcftools mpileup -f /mnt/c/Users/asus/genome_assembly/genome_sars_cov2/NC_045512.2.fasta ${sample}.duprem.bam | bcftools call -cv --ploidy 1 -Oz -o  ${sample}.vcf.gz
-#bcftools mpileup -f /mnt/c/Users/asus/genome_assembly/genome_sars_cov2/NC_045512.2.fasta SRR21139865.duprem.bam | bcftools call -cv --ploidy 1 -Oz -o SRR21139865.vcf.gz
-
+bcftools mpileup -f ${sample}_masked.fasta ${sample}.duprem.bam | bcftools call -cv --ploidy 1 -Oz -o  ${sample}.vcf.gz
+#bcftools mpileup -f SRR21139865_masked.fasta SRR21139865.duprem.bam | bcftools call -cv --ploidy 1 -Oz -o SRR21139865.vcf.gz
 
 stime=`date +"%Y-%m-%d %H:%M:%S"`
 echo "$stime Step-11 (generation of vcf index)"
 bcftools index  ${sample}.vcf.gz
+#bcftools index SRR21139865.vcf.gz
+#tabix -p vcf index SRR21139865.vcf.gz
 
 stime=`date +"%Y-%m-%d %H:%M:%S"`
 echo "$stime Step-12 (Generation of viral genome fasta)"
 cat  ${sample}_masked.fasta | bcftools consensus  ${sample}.vcf.gz >  ${sample}_genome.fa
+#cat SRR21139865_masked.fasta | bcftools consensus SRR21139865.vcf.gz > SRR21139865_genome_test.fa
+#bcftools consensus  SRR21139865.vcf.gz > SRR21139865_genome_test.fa | cat SRR21139865_masked.fasta
 
 rm ${sample}.sam
 rm ${BASEDIRDATA}/${sample}_P1.fastq

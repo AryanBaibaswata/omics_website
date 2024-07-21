@@ -3,8 +3,7 @@ import subprocess
 
 def convert_bam_to_bed(sample_id, input_txt, output_bed):
     # Step 1: Generate coverage information
-    coverage_file = f"{sample_id}_coverage.txt"
-    output_bed = f"{sample_id}.bed"
+    coverage_file = input_txt
     #with open(coverage_file, 'w') as coverage_out:
         #subprocess.run(["samtools", "depth", input_txt], stdout=coverage_out)
 
@@ -22,9 +21,8 @@ def convert_bam_to_bed(sample_id, input_txt, output_bed):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert BAM to BED using samtools depth")
     parser.add_argument("sample_id", help="Sample ID")
-    parser.add_argument("input_txt", help="Input TXT file")
+    parser.add_argument("input_bam", help="Input BAM file")
     parser.add_argument("output_bed", help="Output BED file")
     args = parser.parse_args()
-    
-    
-    convert_bam_to_bed(args.sample_id, args.input_txt, args.output_bed)
+
+convert_bam_to_bed(args.sample_id, args.input_bam, args.output_bed)

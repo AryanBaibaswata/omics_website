@@ -247,7 +247,7 @@ app.post('/upload', upload, async (req, res) => {
             samtools view -b "\${basedir}/\${sample_name}.sam" -o "\${basedir}/\${sample_name}.bam" 2>&1 >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.2: Alignment Metrics for \${sample_name}" >> \${progress_file}
-              samtools flagstat "\${basedir}/\${sample_name}.bam" > "\${basedir}/\${sample_name}.flagstat.txt" 2>&1 >> \${progress_file}
+            samtools flagstat "\${basedir}/\${sample_name}.bam" > "\${basedir}/\${sample_name}.flagstat.txt" 2>&1 >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.3: Conversion of BAM To Sorted BAM for \${sample_name}" >> \${progress_file}
             samtools sort "\${basedir}/\${sample_name}.bam" -o "\${basedir}/\${sample_name}.sorted.bam" 2>&1 >> \${progress_file}
@@ -255,64 +255,62 @@ app.post('/upload', upload, async (req, res) => {
             samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam" 2>&1 >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.5: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file} 
-            samtools depth "\${basedir}/\${sample_name}.duprem.bam" -aa | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt" 2>&1 >> \${progress_file}
+            samtools depth "\${basedir}/\${sample_name}.duprem.bam" -aa | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt" 
+            sleep 2
+            input_bam="\${basedir}/coverage_\${sample_name}.txt" 
+            output_bed="\${basedir}/\${sample_name}.bed" 
             sleep 2
             
-            samtools view \${basedir}/\${sample_name}.duprem.bam |
-  awk '{split ($6,a,"[MIDNSHP]"); bp=$4-1; n=0;
-    for (i=1; i<=length(a); i++) {
-      n+=1+length(a[i]);
-      if (substr($6,n,1)=="M") print $3"\t"bp"\t"(bp+=a[i]);
-      if (substr($6,n,1)=="D") bp+=a[i];
-    }
-  }' > \${basedir}/\${sample_name}.bed
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.6: Extracting start end coordinates of missing read segments for \${sample_name}" >> \${progress_file}
+            python3 "pipelines/convert_txt_to_bed.py" "\${sample_name}" "\${input_bam}" "\${output_bed}" 
+            echo "Created \${output_bed} from \${input_txt}" >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.7: Performing N-masking for \${sample_name}" >> \${progress_file}
-            bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${sample_name}.bed" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta" 2>&1 >> \${progress_file}
+            bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${output_bed}" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta" 2>&1 >> \${progress_file}
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step IV: Generation of VCF, VCF Index and Viral Genome for \${sample_name}" >> \${progress_file} 
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-4: Generation of VCF for \${sample_name}" >> \${progress_file}
-            bcftools mpileup -f "\${GENOMEIDX}" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz" 2>&1 >> \${progress_file}
+            bcftools mpileup -f "\${basedir}/\${sample_name}_masked.fasta" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz" 2>&1 >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-4.1: Generation of VCF Index for \${sample_name}" >> \${progress_file}
             bcftools index "\${basedir}/\${sample_name}.vcf.gz" 2>&1 >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-4.2: Generation of viral genome fasta for \${sample_name}" >> \${progress_file}
-            cat "\${basedir}/\${sample_name}_masked.fasta" | bcftools consensus "\${basedir}/\${sample_name}.vcf.gz" > "\${basedir}/\${sample_name}_genome.fa" 2>&1 >> \${progress_file}
+            cat "\${basedir}/\${sample_name}_masked.fasta" | bcftools consensus "\${basedir}/\${sample_name}.vcf.gz" > "\${basedir}/\${sample_name}_genome.fa" 
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - complete!" >> \${progress_file} 
         done
         echo "\$(date '+%Y-%m-%d %H:%M:%S') - Step V: MultiQC Quality Control" >> \${progress_file}
         multiqc "\${basedir}/fastqc_output/" "\${basedir}/" -o "\${basedir}/multiqc_output/" 2>&1 >> \${progress_file}
-        `;
+                `;
 
         const scriptPath = path.join(basedir, 'pipeline.sh');
-    fs.writeFileSync(scriptPath, pipelineScriptContent);
-    fs.chmodSync(scriptPath, '755');
+        fs.writeFileSync(scriptPath, pipelineScriptContent);
+        fs.chmodSync(scriptPath, '755');
 
-    console.log(`Pipeline script written to ${scriptPath}`);
-    sampleFiles.forEach(sample => {
-        console.log(`Expecting sample files: ${path.join('uploads', `${sample}_1.fastq.gz`)}, ${path.join('uploads', `${sample}_2.fastq.gz`)}`);
-    });
+        console.log(`Pipeline script written to ${scriptPath}`);
+        sampleFiles.forEach(sample => {
+            console.log(`Expecting sample files: ${path.join('uploads', `${sample}_1.fastq.gz`)}, ${path.join('uploads', `${sample}_2.fastq.gz`)}`);
+        });
 
-    fs.writeFileSync(progressFile, ''); // Clear previous progress
+        fs.writeFileSync(progressFile, ''); // Clear previous progress
 
-    const child = exec(`bash ${scriptPath}`, { shell: '/bin/bash' });
-    child.stdout.on('data', (data) => {
-        console.log(`stdout: ${data}`);
-        fs.appendFileSync(progressFile, data);
-    });
+        const child = exec(`bash ${scriptPath}`, { shell: '/bin/bash' });
+        child.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+            fs.appendFileSync(progressFile, data);
+        });
 
-    child.stderr.on('data', (data) => {
-        console.error(`stderr: ${data}`);
-        fs.appendFileSync(progressFile, data);
-    });
+        child.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+            fs.appendFileSync(progressFile, data);
+        });
 
-    child.on('close', (code) => {
-        console.log(`child process exited with code ${code}`);
-        fs.appendFileSync(progressFile, `Process completed with code ${code}\n`);
-    });
+        child.on('close', (code) => {
+            console.log(`child process exited with code ${code}`);
+            fs.appendFileSync(progressFile, `Process completed with code ${code}\n`);
+        });
 
-    res.json({ message: 'Pipeline execution started.', uploadFolder: req.uploadFolder });
+        res.json({ message: 'Pipeline execution started.', uploadFolder: req.uploadFolder });
     });
 });
 // Route to stream progress updates
@@ -419,7 +417,7 @@ app.get('/list-directories', (req, res) => {
             return res.status(500).json({ error: 'Error reading uploads directory' });
         }
         // Filter out non-directory entries and sort by name (which is the timestamp)
-        const directories = files.filter(file => 
+        const directories = files.filter(file =>
             fs.statSync(path.join(uploadsDir, file)).isDirectory()
         ).sort((a, b) => b.localeCompare(a)); // Sort in descending order
 
