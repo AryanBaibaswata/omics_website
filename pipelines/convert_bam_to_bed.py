@@ -3,7 +3,7 @@ import subprocess
 
 def convert_bam_to_bed(sample_id, input_bam, output_bed):
     # Step 1: Generate coverage information
-    coverage_file = f"{sample_id}_coverage.txt"
+    coverage_file = f"coverage_{sample_id}.txt"
     with open(coverage_file, 'w') as coverage_out:
         subprocess.run(["samtools", "depth", input_bam], stdout=coverage_out)
 
