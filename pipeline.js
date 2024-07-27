@@ -250,9 +250,12 @@ app.post('/upload', upload, async (req, res) => {
             samtools flagstat "\${basedir}/\${sample_name}.bam" > "\${basedir}/\${sample_name}.flagstat.txt" 2>&1 >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.3: Conversion of BAM To Sorted BAM for \${sample_name}" >> \${progress_file}
-            samtools sort "\${basedir}/\${sample_name}.bam" -o "\${basedir}/\${sample_name}.sorted.bam" 2>&1 >> \${progress_file}
+            samtools sort -n "\${basedir}/\${sample_name}.bam" -o "\${basedir}/\${sample_name}.namesorted.bam" 2>&1 >> \${progress_file}
+            samtools fixmate -r -O bam --no-PG "\${basedir}/\${sample_name}.namesorted.bam" "\${basedir}/\${sample_name}.cleaned.bam"
+            samtools sort "\${basedir}/\${sample_name}.cleaned.bam" -o "\${basedir}/\${sample_name}.sorted.bam"
+            samtools markdup "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.marked.bam"
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.4: Removing duplicate reads from Sorted Bam Files for \${sample_name}" >> \${progress_file} 
-            samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam" 2>&1 >> \${progress_file}
+            samtools rmdup -S "\${basedir}/\${sample_name}.marked.bam" "\${basedir}/\${sample_name}.duprem.bam" 2>&1 >> \${progress_file}
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.5: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file} 
             samtools depth "\${basedir}/\${sample_name}.duprem.bam" -aa | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt" 
