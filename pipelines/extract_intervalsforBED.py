@@ -20,7 +20,7 @@ def convert_bam_to_bed(sample_id, input_bam, output_bed):
             pos = int(fields[1]) - 1  # BED format is 0-based
             coverage = fields[2]
             # Create a BED interval for each position with the coverage as the score
-            outfile.write(f"{chrom}\t{pos}\t{pos + 1}\t{coverage}\n")
+            outfile.write(f"{chrom}\t{pos}\t{pos + 1}\tpos\t{coverage}\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert BAM to BED using samtools depth")
