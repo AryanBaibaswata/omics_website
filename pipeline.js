@@ -161,7 +161,15 @@ app.post('/upload', upload, async (req, res) => {
     // Replace spaces with underscores in indexBasePath
     const indexBasePath = path.join(`uploads/${req.uploadFolder}/${genomeDirName}`, genomeDirName);
     console.log("indexbasepath:", indexBasePath);
-
+    const convertGenomeToUpperCase = async (genomeFilePath) => {
+        const command = `awk '{ if (!/^>/) print toupper($0); else print $0 }' ${genomeFilePath} > ${genomeFilePath}.tmp && mv ${genomeFilePath}.tmp ${genomeFilePath}`;
+        await execPromise(command);
+    };
+    
+    // Call this function before the bowtie2-build command
+    await convertGenomeToUpperCase(genomeFilePath);
+    
+    // Continue with your existing pipeline
     const bowtieBuildCmd = `bowtie2-build ${genomeFilePath} ${indexBasePath}`;
     exec(bowtieBuildCmd, (error, stdout, stderr) => {
         console.log("began building")
@@ -317,7 +325,7 @@ app.post('/upload', upload, async (req, res) => {
 app.get('/progress/:folder', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Connection', 'keep-alive');  
     res.flushHeaders();
 
     const basedir = path.resolve(__dirname, 'uploads/', req.params.folder);
