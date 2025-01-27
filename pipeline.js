@@ -263,18 +263,10 @@ app.post('/upload', upload, async (req, res) => {
             samtools rmdup -S "\${basedir}/\${sample_name}.sorted.bam" "\${basedir}/\${sample_name}.duprem.bam" 
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.5: Deriving Low Coverage Bed File for \${sample_name}" >> \${progress_file} 
-            samtools depth "\${basedir}/\${sample_name}.duprem.bam" -aa | awk '$3 < 5 {print $1"\t"$2"\t"$3}' > "\${basedir}/coverage_\${sample_name}.txt" 
+            bash "pipelines/unaligned_bed.sh" "\${basedir}/\${sample_name}.duprem.bam" "\${basedir}/\${sample_name}_unaligned.bed"
             sleep 2
-            input_bam="\${basedir}/coverage_\${sample_name}.txt" 
-            output_bed="\${basedir}/\${sample_name}.bed" 
-            sleep 2
-            
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.6: Extracting start end coordinates of missing read segments for \${sample_name}" >> \${progress_file}
-            python3 "pipelines/convert_txt_to_bed.py" "\${sample_name}" "\${input_bam}" "\${output_bed}" 
-            echo "Created \${output_bed} from \${input_txt}" >> \${progress_file}
-            sleep 2
-            echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.7: Performing N-masking for \${sample_name}" >> \${progress_file}
-            bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${output_bed}" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-3.6: Performing N-masking for \${sample_name}" >> \${progress_file}
+            bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${basedir}/\${sample_name}_unaligned.bed" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta"
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step IV: Generation of VCF, VCF Index and Viral Genome for \${sample_name}" >> \${progress_file} 
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-4: Generation of VCF for \${sample_name}" >> \${progress_file}
             bcftools mpileup -f "\${basedir}/\${sample_name}_masked.fasta" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz" 
