@@ -39,7 +39,7 @@ samtools view -F 4 "$INPUT_BAM" | awk '{
 bedtools complement -i aligned_regions.bed -g "$GENOME_FILE" > "$OUTPUT_BED"
 
 # Clean up temporary files
-rm -f aligned_regions.bed "$GENOME_FILE"
+
 
 echo "Unaligned regions have been saved to '$OUTPUT_BED'."
 

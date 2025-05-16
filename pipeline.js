@@ -13,7 +13,7 @@ const renamePromise = util.promisify(fs.rename);
 // // const session = require('express-session');
 // // const redis = require("connect-redis")(session);
 // // const bcrypt = require('bcrypt');
-const mongoose = require('mongoose');
+
 const authRoutes = require('./controllers/auth');
 const authMiddleware = require('./middleware/auth');
 require('dotenv').config();
@@ -23,11 +23,11 @@ const PORT = process.env.PORT || 3000;
 // const handlebars = require('express-handlebars');
 // Set up multer for file uploads
 
-mongoose.connect(process.env.MONGODB_URI, {
+/* mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
-
+*/
 app.use(express.json());
 app.use('/auth', authRoutes);
 
