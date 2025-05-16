@@ -40,7 +40,7 @@ for sample_name in "${samples[@]}"; do
  
 
     echo "Step-10: Generation of VCF for ${sample_name}"
-    bcftools mpileup -f "${GENOMEIDX1}" "${basedir}/${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "${basedir}/${sample_name}.vcf.gz"
+    bcftools mpileup -d 1000000 -f "${GENOMEIDX1}" "${basedir}/${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "${basedir}/${sample_name}.vcf.gz"
 
     echo "Step-11: Generation of VCF Index for ${sample_name}"
     bcftools index "${basedir}/${sample_name}.vcf.gz"

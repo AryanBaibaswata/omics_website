@@ -269,7 +269,7 @@ app.post('/upload', upload, async (req, res) => {
             bedtools maskfasta -fi "\${GENOMEIDX}" -bed "\${basedir}/\${sample_name}_unaligned.bed" -mc N -fo "\${basedir}/\${sample_name}_masked.fasta"
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step IV: Generation of VCF, VCF Index and Viral Genome for \${sample_name}" >> \${progress_file} 
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-4: Generation of VCF for \${sample_name}" >> \${progress_file}
-            bcftools mpileup -f "\${basedir}/\${sample_name}_masked.fasta" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz" 
+            bcftools mpileup -d 1000000 -f "\${basedir}/\${sample_name}_masked.fasta" "\${basedir}/\${sample_name}.duprem.bam" | bcftools call -cv --ploidy 1 -Oz -o "\${basedir}/\${sample_name}.vcf.gz" 
             sleep 2
             echo "$(date '+%Y-%m-%d %H:%M:%S') - Step-4.1: Generation of VCF Index for \${sample_name}" >> \${progress_file}
             bcftools index "\${basedir}/\${sample_name}.vcf.gz" 2>&1 >> \${progress_file}
